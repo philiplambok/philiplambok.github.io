@@ -4,6 +4,7 @@ comments: true
 title:  "Repository Pattern di Rails"
 date:   2019-03-31 14:26:24 +0700
 categories: rails
+comments:   true
 ---
 
 Repository Pattern, salah satu pattern untuk meringankan beban model Anda.

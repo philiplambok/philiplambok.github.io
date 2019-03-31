@@ -4,6 +4,7 @@ comments: true
 title:  "Pengenalan Mutator, bagian gelap dari service object."
 date:   2019-03-31 12:20:24 +0700
 categories: rails
+comments:   true
 ---
 Hello, akhirnya setelah sekian lama, saya nulis lagi. Minggu ini saya menemukan sesuatu menarik yaitu pola desain Mutator.
 
