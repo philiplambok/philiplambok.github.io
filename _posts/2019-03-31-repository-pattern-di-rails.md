@@ -82,7 +82,7 @@ end
 Kita mempunyai beberapa scope seperti diatas, lalu mari kita *refactor* dengan menggunakan *repository pattern* ala Mas Ivan.
 
 ```rb
-# app/models/concerns/user_repository.rb
+# app/repositories/user_repository.rb
 module UserRepository
   extend ActiveSupport::Concern
 
