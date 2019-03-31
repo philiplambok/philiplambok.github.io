@@ -40,7 +40,7 @@ end
 
 Mungkin hampir mustahil mengimplementasi hal tersebut di Model khususnya jika anda menggunakan *Active Record*, alternatifnya jika anda ingin benar-benar ingin mengimplementasikan-nya anda bisa menggunakan `dry-rb` sebagai *replacement* dari *Active Record*.
 
-Panduan untuk hal tersebut anda bisa membaca buku *Exploiding Rails* karya *Ryan Bates*. Ide dari buku itu sangat menarik, bagaimana *dry-rb* benar-benar memisahkan *Responsibility* dari validasi, callback sampai masalah query. Setiap aktifitas tersebut anda dituntut untuk membuat masing-masing kelas atau objectnya.
+Panduan untuk hal tersebut anda bisa membaca buku [*Exploding Rails*](https://leanpub.com/explodingrails) karya *Ryan Bates*. Ide dari buku itu sangat menarik, bagaimana *dry-rb* benar-benar memisahkan *Responsibility* dari validasi, callback sampai masalah query. Setiap aktifitas tersebut anda dituntut untuk membuat masing-masing kelas atau objectnya.
 
 *Apakah itu over engineering?*
 
