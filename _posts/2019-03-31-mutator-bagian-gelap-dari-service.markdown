@@ -193,21 +193,11 @@ Log: kereta #{name_of_train} terhapus dari daftar kereta
 ```
 
 Namun, kita mulai merasakan konsistensi service kita mulai aneh. Kita mulai merasakan adanya `Gap`. Solusi atas masalah ini adalah `Mutator`, yaitu sesuatu yang ada di `before_**` atau `after_*` seharusnya di handle oleh `Mutator` bukan `Service` class. Penambahan layer ini membuat arsitektur kita mulai berubah dari:
-```
-View => Controller => Model (trivial)
-Atau
-View => Controller => Service => Model (non-trivial)
-```
+![Model-Service](/assets/trivial-model-service.png)
+
 Menjadi:
-```
-View => Controller => Model (trivial)
-Atau
-View => Controller => Mutator => Model (Non-trivial, satu model)
-Atau
-View => Controller => Service => Model (trivial, tapi lebih dari dua model)
-Atau
-View => Controller => Service => Mutator => Model (Non-trivial, lebih dari satu model)
-```
+
+![Mutator-Relation](/assets/mutator-relation.svg)
 
 Mari kita langsung ke refactoring kode kita sebelumnya.
 ### Refactoring Fitur Pertama: Penambahan Kereta.
