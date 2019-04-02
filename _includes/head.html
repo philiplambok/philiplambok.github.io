@@ -8,4 +8,32 @@
   {%- if jekyll.environment == 'production' and site.google_analytics -%}
     {%- include google-analytics.html -%}
   {%- endif -%}
+  <style>
+    .musics {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .music {
+      width: 30%;
+      padding: 0 10px;
+      padding-bottom: 25px;
+    }
+
+    .music-title {
+      display: block;
+      font-weight: bold;
+      padding: 5px 0px;
+    }
+
+    .music-artist{
+      color: gray;
+    }
+
+    @media(max-width: 991.99px) {
+      .music {
+        width: 42%;
+      }
+    }
+  </style>
 </head>
