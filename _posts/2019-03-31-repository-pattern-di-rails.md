@@ -118,6 +118,15 @@ class User
 end
 ```
 
+Direktorinya kira-kira:
+```
+.
+├── app
+│   └── models
+|       └── user.rb
+|   └── repositories
+|        └── user_repository.rb
+```
 Kode diatas masih memiliki arti yang sama, yaitu anda tetap dapat menggunakan perintah seperti `User.actives`, `User.pendings`, `User.admins`, dll.
 
 ### Kesimpulan
