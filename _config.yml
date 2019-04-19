@@ -20,7 +20,11 @@ description: >- # this means to ignore newlines until "baseurl:"
 baseurl: "/" # the subpath of your site, e.g. /blog
 url: "philiplambok.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: philiplambok
-github_username:  philiplambok
+github_username: philiplambok
+linkedin_username: philiplambok
+telegram_username: philiplambok
+disqus:
+  shortname: philips-slice-of-life
 
 # Build settings
 markdown: kramdown
@@ -31,7 +35,6 @@ plugins:
 # Collections
 collections:
   - musics
-
 # Exclude from processing.
 # The following items will not be processed, by default. Create a custom list
 # to override the default setting.
