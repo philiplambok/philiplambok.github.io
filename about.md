@@ -4,10 +4,10 @@ title: About
 permalink: /about/
 ---
 
-Terlahir kembali untuk beberapa kalinya.
+Perkenalkan,
 
-Kenalkan, Nama saya Philip Lambok, penulis kode Ruby sehari-hari.
+Nama saya Philip Lambok, penulis kode Ruby sehari-hari.
 
-Blog ini bertujuan menjadi wadah berbagi saya semoga dapat bermamfaat untuk pembaca skalian.
+Blog ini bertujuan menjadi wadah berbagi saya, semoga tulisan-tulisan yang ada di blog ini dapat bermamfaat untuk pembaca skalian.
 
 Salam.

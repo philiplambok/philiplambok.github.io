@@ -2,25 +2,28 @@
 layout: post
 comments: true
 title:  "Pengenalan Mutator, bagian gelap dari service object."
-date:   2019-03-31 12:20:24 +0700
+date:   2019-04-28 13:10:00 +0700
 categories: rails
 comments:   true
+published: true
 ---
 
 Dalam menulis kode Rails kita biasanya memiliki satu mantra yakni
 
 > Skinny Controller, Fat Model
 
-Perbincangan di kalangan rails developer mungkin yang sering kita temui.
+Perbincangan di kalangan *Rails Developer* mungkin yang sering kita temui.
 
-Q: Apa kode ini bisa saya taro di views?<br>
+Q: Apa kode ini bisa saya taro di *views*?<br>
 A: Jangan.<br>
-Q: Hmnn, lalu apakah boleh saya taru di controller?<br>
-A: Hmn, jangan juga deh<br>
-Q: Hmnn, berarti model dong ya?<br>
+Q: Hmnn, lalu apakah boleh saya *taro* di *controller*?<br>
+A: Hmn, jangan juga *deh*<br>
+Q: Hmnn, berarti model *dong ya*?<br>
 A: Ok Sipp.
 
-Hingga akhirnya model benar-benar besar, beberapa contohnya bisa kita lihat dari projek *open source* yang ada di luar seperti Discourse. Projek ini memiliki 1551 baris di model [topic.rb](https://github.com/discourse/discourse/blob/master/app/models/topic.rb) begitu juga dengan model [user.rb](https://github.com/discourse/discourse/blob/master/app/models/user.rb) yang memiliki 1490 baris (*diakses 22 April 2019*).
+Hingga akhirnya kelas model kita benar-benar menjadi besar.
+
+Beberapa contohnya bisa kita lihat dari salah satu projek *open source* yang besar seperti Discourse. Projek ini memiliki 1551 baris di model [topic.rb](https://github.com/discourse/discourse/blob/master/app/models/topic.rb) begitu juga dengan model [user.rb](https://github.com/discourse/discourse/blob/master/app/models/user.rb) yang memiliki 1490 baris (*diakses 22 April 2019*).
 
 Saya rasa untuk satu kelas yang memilki banyak kode/baris seperti ini sangat sulit dipeliharanya. Bisa dilihat dari banyak kode ini, kelas ini sudah memiliki banyak tanggung jawab yang diberikan kepadanya. Untuk mengatasi masalah ini komunitas Rails sudah mengenalkan pola *Service Object*.
 
@@ -34,7 +37,7 @@ Mantra mulai beralih menjadi :
 
 Dari awal Rails memang tidak memiliki peraturan yang ketat pada layer-layer ini, begitu juga dengan *service layer*. Tidak jelas kode apa yang harus ditulis di *controller*, di model dan juga di *service*. Seperti yang dikatakan sebelumnya, *Service layer* hanyalah sebagai tempat pembuangan diantara *controller* dan model agar kedua objek yang lain itu lebih bersih saja.
 
-Hingga akhirnya ada beberapa skenario seperti kode-kode yang di dalam callback `before_action`, `after_action` dan teman-temannya muncul. Pada kode awal, kode-kode yang didalam blok ini di ekstrak keluar ke *service object* agar model terhindar dari *aplikasi logic*. Namun kode-kode ini sangat terikat dengan model, sedangkan *service objek* tidak. Service objek hanyalah berdiri diantara 1 controller dan 1 model.
+Hingga akhirnya ada beberapa skenario seperti kode-kode yang di dalam *callback* `before_action`, `after_action` dan teman-temannya muncul. Pada kode awal, kode-kode yang didalam blok ini di ekstrak keluar ke *service object* agar model terhindar dari *aplikasi logic*. Namun kode-kode ini sangat terikat dengan model, sedangkan *service objek* tidak. Service objek hanyalah berdiri diantara 1 controller dan 1 model.
 
 Hingga akhirnya kita kembali menulis `before_action` dan `after_action` di dalam model karena memang tidak relevan di *service object*. Maka, model kita kembali memiliki *aplikasi logic* yang jika aplikasi terus berkembang, mau tidak mau model kita akan terus bertambah gemuk.
 
@@ -54,7 +57,7 @@ PT MRT Jakarta (sebuah perusahaan perkeretaan) mengontrak kita untuk menambahkan
 
    Di halaman daftar kereta, admin dapat memilih dan menghapus kereta yang dipilih. Setelah dipilih sistem menghapus kereta dan juga antrian dari kereta yang bersangkutan. Lalu sistem juga menulis log ke sistem. (Lognya: Kereta TIPE-X terhapus dari daftar kereta).
 
-Analogi soalnya kira-kira bisa kita gambarkan seperti ini:
+Analogi studi kasus diatas kira-kira bisa kita gambarkan seperti ini:
 
 ![Analogi Soal](/assets/anologi-soal.png)
 
@@ -140,7 +143,7 @@ Kode diatas sudah lumayan panjang. Intinya seperti yang di komentar yaitu mengha
 
 Fitur pertama dan kedua telah selesai, sekarang kita lanjut ke fitur yang ketiga (terakhir). Kita membuat sebuah fitur penghapusan kereta. Dimana ketika kereta dihapus, sistem akan menyimpan log *"Kereta TIPE-X terhapus dari daftar kereta"*. Kereta yang dihapus juga, akan menghapus antrian yang mungkin sebelumnya sudah terdafatar.
 
-Lalu kita mungkin berfikir kalo dikode ini kita bisa memanggil service penghapusan antrian yang sebelumnya kita sudah buat:
+Lalu kita mungkin berfikir kalo di kode ini kita bisa memanggil service penghapusan antrian yang sebelumnya kita sudah buat:
 
 ```rb
 #/ app/controllers/trains/queue_controller.rb
