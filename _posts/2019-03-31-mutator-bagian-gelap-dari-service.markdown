@@ -6,323 +6,285 @@ date:   2019-03-31 12:20:24 +0700
 categories: rails
 comments:   true
 ---
-Hello, akhirnya setelah sekian lama, saya nulis lagi. Minggu ini saya menemukan sesuatu menarik yaitu pola desain Mutator.
 
-Kata-kata *Ruby is dead* mungkin sudah sering saya dengar jadi tidak ada masalah dengan hal tersebut, namun belakangan ini saya juga sudah sering dengar *Rails is DEAD*. Jika anda salah satu orang yang menyuarakan hal tersebut dan juga pengguna aktif Hanami di *Production*, mungkin tulisan ini bukan buat anda.
+Dalam menulis kode Rails kita biasanya memiliki satu mantra yakni
 
-Secara pribadi saya suka Rails, tapi mungkin saya sudah menemukan bahwa *Vanilla Rails* mungkin sudah tidak cocok lagi pada program yang sudah mulai besar. Pattern MVC yang diadopsi oleh Rails membuat model saya menjadi sangat besar dan sudah sulit untuk dipelihara. Service object datang sebagai salah satu solusi untuk meringankan beban dari model. Saya pun setuju dengan hal tersebut.
+> Skinny Controller, Fat Model
 
-Namun, Mas *Ivan Nemytchenko* secara revolusioner mengenalkan saya tentang Mutator, konsep yang cukup *extreme* namun saya sangat sependapat dengannya. Kenapa *extreme*? di akhir tulisan ini akan saya jawab.
+Perbincangan di kalangan rails developer mungkin yang sering kita temui.
 
-Biar *updol* dalam membahas Mutator, mari kita membuat studi kasus yang akan kita selesaikan menggunakan service object terlebih dahulu, lalu selanjutnya bary kita improve dengan menggunakan Mutator.
+Q: Apa kode ini bisa saya taro di views?<br>
+A: Jangan.<br>
+Q: Hmnn, lalu apakah boleh saya taru di controller?<br>
+A: Hmn, jangan juga deh<br>
+Q: Hmnn, berarti model dong ya?<br>
+A: Ok Sipp.
 
-Ok, begini alur programnya:
+Hingga akhirnya model benar-benar besar, beberapa contohnya bisa kita lihat dari projek *open source* yang ada di luar seperti Discourse. Projek ini memiliki 1551 baris di model [topic.rb](https://github.com/discourse/discourse/blob/master/app/models/topic.rb) begitu juga dengan model [user.rb](https://github.com/discourse/discourse/blob/master/app/models/user.rb) yang memiliki 1490 baris (*diakses 22 April 2019*).
 
-Kita diminta membuatkan sebuah program kecil-kecilan untuk sebuah program internal di PT MRT, sebuah industri perkeretaan. Disana, kita disuruh membuat sebuah program terkait antrian kereta, berikut detail-nya.
-```
-Input:
-Masukkan Kereta nama anda: [....]
+Saya rasa untuk satu kelas yang memilki banyak kode/baris seperti ini sangat sulit dipeliharanya. Bisa dilihat dari banyak kode ini, kelas ini sudah memiliki banyak tanggung jawab yang diberikan kepadanya. Untuk mengatasi masalah ini komunitas Rails sudah mengenalkan pola *Service Object*.
 
-----
-Antrian:
-[1] PX-223
-[2] IO-123
-[3] OO-251
-[4] IW-211
-```
-Setiap input yang disimpan harus ada lognya: `Kereta dengan tipe IW-211 masuk ke antrian 4`, selain itu sistem ini juga harus dapat menghapus antrian tertentu, misalnya kita akan menghapus antrian kedua (`IO-123`), maka hasil akhir antrian menjadi.
-```
-Antrian:
-[1] PX-223
-[2] OO-251
-[3] IW-211
-```
-Antrian kereta sebelumnya menjadi naik, dan ada lognya juga `Kereta dengan tipe IO-123 terhapus dari antrian 2`. Dan fitur terakhir adalah, mengapus unit keretanya, contohnya saya ingin menghapus unit `PX-223`, maka Antriannya juga terhapus, namun log yang tertulis adalah `Kereta PX-223 Terhapus dari daftar Kereta` dan tidak ada log untuk penghapusan antrian, namun realitasnya sistem tetap menampilkan daftar antrian menjadi 2 Buah saja :
-```
-Antrian:
-[1] OO-251
-[2] IW-211
-```
+*Service Object* mungkin saya bisa bilang adalah sebuah layer yang berdiri diantara *controller* dan model. Layer ini bertujuan untuk mengurangi tanggung jawab model sehingga hasil akhir yang diharapkan kode di dalam model bisa lebih sedikit.
 
-Oke, mungkin sudah cukup jelas, sekarang mari kita buat programmya.
+Pola ini berhasil di pasar komunitas Rails, banyak yang memamfaatkannya karena ternyata bisa mengurangi kode model yang cukup signifikan. Namun, ternyata realitas tidak seindah itu dirasakan.
 
-Saya hanya menampilkan klip-klip kode yang pentingnya saja agar kita bisa terfokus pada masalah *Mutator* dan *Service*.
+Mantra mulai beralih menjadi :
 
-### Feature Pertama: Menambahkan Fitur Antrian.
-```ruby
-# Controller
-def create
-  # ...
-  add_queue = TrainQueueService::Create.new(train).perform
-  # ..
-end
+> Skinny Controller, Fat Model, Fat Service
 
-# Service
-module TrainQueueService
-  class Create
-    def initialize(train)
-      @train = train
-    end
-    def perform
-      number = Train::Queue.find_last_number
-      current_number = number + 1
-      Train::Queue.create!(number: current_number, train: @train)
-      log_desc = "Kereta dengan tipe #{@train.name} masuk ke antrian #{current_number}"
-      Log.create!(description: log_desc)
-    end
-  end
-end
-```
+Dari awal Rails memang tidak memiliki peraturan yang ketat pada layer-layer ini, begitu juga dengan *service layer*. Tidak jelas kode apa yang harus ditulis di *controller*, di model dan juga di *service*. Seperti yang dikatakan sebelumnya, *Service layer* hanyalah sebagai tempat pembuangan diantara *controller* dan model agar kedua objek yang lain itu lebih bersih saja.
 
-Oke, kode diatas sepertinya sudah cukup, sekarang lanjut ke penghapusan antrian.
+Hingga akhirnya ada beberapa skenario seperti kode-kode yang di dalam callback `before_action`, `after_action` dan teman-temannya muncul. Pada kode awal, kode-kode yang didalam blok ini di ekstrak keluar ke *service object* agar model terhindar dari *aplikasi logic*. Namun kode-kode ini sangat terikat dengan model, sedangkan *service objek* tidak. Service objek hanyalah berdiri diantara 1 controller dan 1 model.
 
-### Feature Kedua: Menghapus Antrian.
-```ruby
-# Controller
-def destroy
-  # ...
-  remove_queue = TrainQueueService::Destroy.new(train).perform
-  # ...
-end
+Hingga akhirnya kita kembali menulis `before_action` dan `after_action` di dalam model karena memang tidak relevan di *service object*. Maka, model kita kembali memiliki *aplikasi logic* yang jika aplikasi terus berkembang, mau tidak mau model kita akan terus bertambah gemuk.
 
-module TrainQueueService
-  class Destroy
-    def initialize(train)
-      @train = train
-    end
+Pada tulisan ini saya ingin mengenalkan *Mutator Layer*. Sebuah layer baru yang mencoba mengatasi masalah yang baru saja dibahas. Pada pengenalan ini saya akan mengajak pembaca untuk mengerjakan studi kasus terkait hal diatas agar kita bisa lebih paham, lalu mencoba memberikan solusinya.
 
-    def perform
-       name_of_train = @train.name
-       queue = TrainQueue.find_by(train: @train)
-       behind_the_queue = TrainQueue.find_behind_queue_of(queue)
-       queue.destroy!
-       behid_the_queue.each(&:increase_number!)
-       log_desc = "Kereta dengan tipe #{name_of_train} terhapus dari antrian #{current_number}"
-       Log.create!(description: log_desc)
-    end
-  end
-end
-```
+**Studi kasus**
 
-Oke, kode diatas sudah cukup kompleks, seharusnya anda bisa memisahnya jadi beberapa method.
+PT MRT Jakarta (sebuah perusahaan perkeretaan) mengontrak kita untuk menambahkan 3 fitur di dalam sistemnya.
 
-Sekarang fitur yang terakhir, yaitu menghapus keretanya, namun ingat kita juga perlu menghapus dari antrian keretanya yaa.
+1. **Penambahan antrian kereta**
 
-### Feature Ketiga: Menghapus Kereta
-```ruby
-# Controller
-def destroy
-  # ...
-  delete_train = TrainService::Destroy.new(train).perform
-  # ...
-end
+   Di halaman tambahan antrian, admin memilih kereta yang akan ditambahkan ke antrian, setelah ditambahkan kereta otomatis masuk ke antrian (paling terakhir) lalu sistem mengirim log untuk penambahan keretanya (Lognya: Kereta TIPE-X masuk antrian urutan ke 3).
+2. **Penghapusan antrian kereta**
 
-module TrainService
-  class Destroy
-    def new(train)
-      @train = train
-    end
+   Di halaman list antrian, admin dapat menghapus kereta tertentu dan ketika kereta dihapus di antrian, maka kereta-kereta yang antriannya dibawah kereta yang bersangkutan akan naik ke atas. Setelah itu sistem memberikan log juga ke sistem. (Lognya: Kereta dengan TIPE-X terhapus dari antrian ke 3).
+3. **Penghapusan kereta**
 
-    def perform
-      name_of_train = @train.name
-      TrainQueueService::Destroy.new(@train).perform
-      @train.destroy
-      log_desc = "kereta #{name_of_train} terhapus dari daftar kereta"
-      Log.create(description: log_desc)
-    end
-  end
-end
-```
+   Di halaman daftar kereta, admin dapat memilih dan menghapus kereta yang dipilih. Setelah dipilih sistem menghapus kereta dan juga antrian dari kereta yang bersangkutan. Lalu sistem juga menulis log ke sistem. (Lognya: Kereta TIPE-X terhapus dari daftar kereta).
 
-Oke, sepertinya sudah selesai.
+Analogi soalnya kira-kira bisa kita gambarkan seperti ini:
 
-Eh, namun nyatanya tidak, implementasi log yang terjadi pada kode diatas adalah.
-```
-Log: Kereta dengan tipe #{name_of_train} terhapus dari antrian #{current_number}
-Log: kereta #{name_of_train} terhapus dari daftar kereta
-```
-Sesuatu yang kita tidak inginkan :(
+![Analogi Soal](/assets/anologi-soal.png)
 
-Kita tidak seharusnya membuat log pada penghapusan antrian, ketika kita menghapus kereta.
+Awalnya, mari kita rancang sistem basis datanya terdahulu.
 
-Jadi bagaimana solusinya?
+kira-kira akan seperti ini:
 
-Oke, mungkin saat ini kita akan memisahkan service pada penghapusan antrian(database) dengan lognya, contohnya akan jadi seperti ini.
-```ruby
-module TrainQueueService
-  class Remove
-    def initialize(train)
-      @train = train
-    end
+![Struktur data](/assets/mutator-example-erd.png)
 
-    def perform
-      name_of_train = @train.name
-      TrainQueueService::Destroy.new(name_of_train).perform
-      log_desc = "Kereta dengan tipe #{name_of_train} terhapus dari antrian #{current_number}"
-      Log.create!(description: log_desc)
-    end
-  end
-end
+Lalu kita menulis kode untuk fitur pertama, yaitu kode untuk penambahan antrian ke dalam sistem.
 
-module TrainQueueService
-  class Destroy
-    def initialize(train)
-      @train = train
-    end
+Kode untuk controllernya
 
-    def perform
-       name_of_train = @train.name
-       queue = TrainQueue.find_by(train: @train)
-       behind_the_queue = TrainQueue.find_behind_queue_of(queue)
-       queue.destroy!
-       behid_the_queue.each(&:increase_number!)
-    end
-  end
-end
-
-# Controller sebelumnya juga jadi berubah!
-def destroy
-  # ...
-  remove_queue = TrainQueueService::Remove.new(train).perform
-  # ...
-end
-```
-Oke, sekarang lognya menjadi satu :
-```
-Log: kereta #{name_of_train} terhapus dari daftar kereta
-```
-
-Namun, kita mulai merasakan konsistensi service kita mulai aneh. Kita mulai merasakan adanya `Gap`. Solusi atas masalah ini adalah `Mutator`, yaitu sesuatu yang ada di `before_**` atau `after_*` seharusnya di handle oleh `Mutator` bukan `Service` class. Penambahan layer ini membuat arsitektur kita mulai berubah dari:
-![Model-Service](/assets/trivial-model-service.png)
-
-Menjadi:
-
-![Mutator-Relation](/assets/mutator-relation.svg)
-
-Mari kita langsung ke refactoring kode kita sebelumnya.
-### Refactoring Fitur Pertama: Penambahan Kereta.
-```ruby
-# Controller
-def create
-  # ...
-  add_queue = TrainQueueService::Create.new(train).perform
-  # ..
-end
-
-# Mutator
-class TrainQueueMutator
-  def self.create(train)
-    number = Train::Queue.find_last_number
-    current_number = number + 1
-    Train::Queue.create!(number: current_number, train: train)
-  end
-end
-
-# Service
-module TrainQueueService
-  class Create
-    def initialize(train)
-      @train = train
-    end
-    def perform
-      TrainQueueMutator.create(train)
-      log_desc = "Kereta dengan tipe #{@train.name} masuk ke antrian #{current_number}"
-      Log.create!(description: log_desc)
-    end
-  end
-end
-```
-
-Oke, sekarang kita sudah pisahkan sesuatu yang bisnis role, dan sesuatu yang sebenernya lumayan *low-level/model-level*.
-
-### Refactoring Fitur Kedua: Penghapusan antrian kereta.
-```ruby
-module TrainQueueService
-  class Destroy
-    def initialize(train)
-      @train = train
-    end
-
-    def perform
-      name_of_train = @train.name
-      TrainQueueMutator.destroy(name_of_train)
-      log_desc = "Kereta dengan tipe #{name_of_train} terhapus dari antrian #{current_number}"
-      Log.create!(description: log_desc)
-    end
-  end
-end
-
-module TrainQueueMutator
-  def self.create(train)
-    # ...
-  end
-
-  def self.destroy(train)
-    name_of_train = @train.name
-    queue = TrainQueue.find_by(train: @train)
-    behind_the_queue = TrainQueue.find_behind_queue_of(queue)
-    queue.destroy!
-    behid_the_queue.each(&:increase_number!)
-  end
-end
-
-# Controller kita pakai yang pertama!
-def destroy
-  # ...
-  remove_queue = TrainQueueService::Destroy.new(train).perform
-  # ...
-end
-```
-
-Oke, sekarang lebih mantap bukan?
-
-### Refactoring Fitur Ketiga: menghapus kereta.
-```ruby
-# Controller
-def destroy
-  # ...
-  delete_train = TrainService::Destroy.new(train).perform
-  # ...
-end
-
-module TrainService
-  class Destroy
-    def new(train)
-      @train = train
-    end
-
-    def perform
-      name_of_train = @train.name
-      TrainQueueMutator.destroy(@train)
-      @train.destroy
-      log_desc = "kereta #{name_of_train} terhapus dari daftar kereta"
-      Log.create(description: log_desc)
-    end
-  end
-end
-```
-
-Lumayan gokil?
-
-### Kesimpulan.
-Walapun agak ekstrim, seperti yang saya sebelumnya bilang, karena memang saya mencoba mencari pattern ini di google belum ada yang pernah membahasnya. Kita anda familiar dengan DDD, mungkin anda bilang kenapa tidak menggunakan *Repository Pattern*?
-
-*Create*, *Destroy*, *Update* memang cocok untuk di repository pattern, namun jika anda mendalami lebih lanjut dari repository pattern, pada konsep tersebut, anda tidak dibolehkan untuk:
 ```rb
-# Tidak boleh
-@user.update(user_params)
-# Tapi, harus
-UserRepository.destroy(@user)
-```
-Dengan mutator, anda tetap dibolehkan menggunakan magic rails:
-```ruby
-# Magic, tapi tetap cantik!
-@user.update(user_params)
-# Namun, jika update yang dilakukan tidak lagi trivial,
-# maka baiknya menggunakan mutator.
-UserMutator.update(@user)
+# / app/controllers/trains/queue_controller.rb
+class Trains::QueueController < ApplicationController
+  def create
+    TrainQueueController::Create.new(train).perform
+  end
+end
+
+# / app/services/train_queue_service/create.rb
+module TrainQueueService
+  class Create
+    def initialize(train)
+      @train = train
+    end
+
+    def perform
+      # get last number in trains queue.
+      last_number = Train::Queue.last_number
+      # set current train number with last number plus one.
+      current_number = last_number + 1
+      # save train in train queue
+      Train.queue.create(number: current_number, train: @train)
+      # last, we create log for this feature.
+      log_message = "Kereta #{@train.name} masuk antrian urutan ke-#{@train.number}"
+      Log.create(description: log_message)
+    end
+  end
+end
 ```
 
-Semoga dengan artikel ini bermamfaat untuk anda, dan mungkin bisa menunda untuk migrasi ke Hanami ^^
+Pada kode diatas secara singkat kita hanya memanggil objek *service*  di *controller* dan berikan dia bertanggung jawab atas penambahan fitur antrian kereta.
 
-Sampai ketemu di lain tulisan, Sayonara~
+Maka fitur pertama kita sudah selesai, sekarang kita lanjut ke fitur selanjutnya, fitur kedua yaitu fitur penghapusan kereta.
+
+```rb
+#/ app/controllers/trains/queue_controller.rb
+class Trains::QueueController < ApplicationController
+  # ...
+  def destroy
+    TrainQueueService::Destroy.new(train).perform
+  end
+end
+
+# / app/services/train_queue_service/destroy.rb
+module TrainQueueService
+  class Destroy
+    def initialize(train)
+      @train = train
+    end
+
+    # Logic:
+    # 1. Kita menaikan antrian dari semua kereta
+    # yang antriannya dibawah kereta yang ingin dihapus
+    # 2. Lalu, baru kita menghapus kereta yang bersangkutan
+    # 3. Terakhir, kita membuatkan lognya.
+    def perform
+      queue = Train::Queue.find_by(train: @train)
+      queues = Train::Queue.where('number < ?', queue.number)
+      queues.each(&:decrease_number!)
+      _queue = queue
+      queue.destroy
+      log_message = "Kereta dengan tipe #{@train.name} terhapus dari antrian ke #{_queue.number}"
+      Log.create(description: log_message)
+    end
+  end
+end
+```
+
+Kode diatas sudah lumayan panjang. Intinya seperti yang di komentar yaitu menghapus kereta yang dipilih dari antrian lalu mengurangi number dari semua kereta yang antriannya sesudah dari kereta yang dihapus. Lalu yang terakhir yaitu membuatkan lognya.
+
+Fitur pertama dan kedua telah selesai, sekarang kita lanjut ke fitur yang ketiga (terakhir). Kita membuat sebuah fitur penghapusan kereta. Dimana ketika kereta dihapus, sistem akan menyimpan log *"Kereta TIPE-X terhapus dari daftar kereta"*. Kereta yang dihapus juga, akan menghapus antrian yang mungkin sebelumnya sudah terdafatar.
+
+Lalu kita mungkin berfikir kalo dikode ini kita bisa memanggil service penghapusan antrian yang sebelumnya kita sudah buat:
+
+```rb
+#/ app/controllers/trains/queue_controller.rb
+class TrainsController < ApplicationController
+  # ...
+  def destroy
+    TrainService::Destroy.new(train).perform
+  end
+end
+
+#/ app/services/trains_service/destroy.rb
+class TrainsService
+  class Destroy
+    def initialize(train)
+      @train = train
+    end
+
+    def perform
+      # Sebelum menghapus keretanya, kita menghapus antriannya terlebih dahulu
+      TrainQueueService::Destroy.new(@train)
+      _train = @train
+      @train.destroy
+      Log.create(description: "Kereta #{_train.name} terhapus dari daftar kereta"
+    end
+  end
+end
+```
+
+Kode diatas singkatnya menghapus antrian kereta, lalu baru menghapusnya. Namun sayangnya kode diatas tidak mengikuti permintaan user. Karena di service `TrainsQueueService` membuatkan log untuk penghapusan antrian diakhir prosesnya, sedangkan user tidak menginginkan hal tersebut.
+
+Mau tidak mau, kita harus rombak kode service yang sebelumnya sudah dibuat, dan memindahkan penghapusan antrian pindah ke model.
+
+```rb
+# / app/models/train/queue.rb
+class Train::Queue < ApplicationModel
+  before_destroy do
+    trains = where('number < ?', number)
+    trains.each(&:decrease_number!)
+  end
+
+  def decrease_number!; end
+end
+
+# / app/services/train_queue_service/destroy.rb
+module TrainQueueService
+  class Destroy
+    def initialize(train)
+      @train = train
+    end
+
+    def perform
+      queue = Train::Queue.find_by(train: @train)
+      _queue = queue
+      queue.destroy
+      log_message = "Kereta dengan tipe #{@train.name} terhapus dari antrian ke #{_queue.number}"
+      Log.create(description: log_message)
+    end
+  end
+end
+```
+
+Kode diatas kita memindahkan *logic* dari *service* ke model, karena kode-kode ini akan selalu dipanggil ketika kita menginginkan penghapusan model. Maka dengan kode ini fitur menjadi sesuai yang diinginkan klien kita.
+
+Namun kita jadi mengenalkan *application logic* pada model kita. Dimana ketika dikemudian hari aplikasi terus berkembang, maka model kita akan menjadi makin gemuk.
+
+Sekarang waktunya saya mengenalkan anda pola mutator. Dimana kelas ini sebagai kelas yang menggantikan *callback* yang ada di dalam model seperti `before_action`, `after_action`, `before_update`, `before_destroy` dan teman-temannya.
+
+Mari kita implementasikan dengan kodenya
+
+```rb
+#/ app/models/train/queue.rb
+class Train::Queue < ApplicationModel
+  def decrease_number; end
+end
+
+#/ app/mutators/queue_mutator.rb
+class QueueMutator
+  def self.destroy(queue)
+    queues = Train::Queue.where('number < ?', queue.number)
+    queues.each(&:decrease_number!)
+    queue.destroy
+  end
+end
+
+#/ app/services/train_queue_service/destroy.rb
+module TrainQueueService
+  class Destroy
+    def initialize(train)
+      @train = train
+    end
+
+    def perform
+      queue = Train::Queue.find_by(train: @train)
+      QueueMutator.destroy(queue)
+      log_message = "Kereta dengan tipe #{@train.name} terhapus dari antrian ke #{_queue.number}"
+      Log.create(description: log_message)
+    end
+  end
+end
+
+#/ app/services/trains_service/destroy.rb
+class TrainsService
+  class Destroy
+    def initialize(train)
+      @train = train
+    end
+
+    def perform
+      # Sebelum menghapus keretanya, kita menghapus antriannya terlebih dahulu
+      queue = Train::Queue.find_by(train: @train)
+      QueueMutator.destroy(queue)
+      _train = @train
+      @train.destroy
+      Log.create(description: "Kereta #{_train.name} terhapus dari daftar kereta"
+    end
+  end
+end
+```
+
+Kita membuat mutator, dimana kodenya diambil dari `before_destroy` yang sebelumnya ada di model `Train::Queue`. Lalu mutator itu kita penggil di *service* `TrainQueueService` dan `TrainsService` menggantikan `queue.destroy` menjadi `QueueMutator.destroy(queue)`.
+
+Dengan mengimplementasikan mutator, model kita menjadi bersih terhindar dari *aplication logic*. Memang model menurut saya harusnya hanya mempresentasikan *record* dari satu tabel database saja. Penjelasan lanjut dengan domain model mungkin akan dibahas di tulisan yang lain.
+
+> Always implement things when you actually need them, never when you just foresee that you need them. (YAGNI -- You aren't gonna need it yet).
+
+Sebuah prinsip yang menganjurkan bahwa programmer seharusnya tidak menambah fungsional jika memang tidak diperlukan. Artinya mutator digunakan hanyalah ketika memang perintah lebih dari satu yang terlihat adanya `before_action` pada model.
+
+Jika `before_action` tidak ada di model, maka jangan gunakan mutator karena anda tidak memerlukannya, cukup gunakan *magic_rails*-nya saja seperti `user.create`, `user.destroy`, dll dan bukan `UserMutator.create(user)`,dll.
+
+| Action  | Trivial      | Complex                   |
+| ------- | ------------ | ------------------------- |
+| Create  | User.create  | UserMutator.create(user)  |
+| Destroy | User.destroy | UserMutator.destroy(user) |
+| Save    | User.save    | UserMutator.save(user)    |
+| Update  | User.update  | UserMutator.update(user)  |
+
+Atau secara alur bisa digambarkan seperti gambar dibawah.
+
+![Flow Mutator](/assets/flow-mutator.png)
+
+**Kesimpulan**
+
+Mutator adalah sebuah solusi dari bagian gelap (tidak terlihat) dari service object yang semakin besar. Semakin besar sebuah kelas, maka semakin banyak tanggung jawab dari kelas tersebut. Ada sebuah prinsip juga yang mengatakan setiap kelas harusnya hanya punya satu tanggung jawab saja (*Single Responsibility Principal/SPR*).
+
+Ada prinsip atau rules lain yang menyebutkan bahwa setiap kelas maksimal harusnya hanya boleh memiliki 100 baris saja, jika anda mengikuti peraturan default pada Rubocop. Semakin kecil kelas juga kelas lebih mudah digunakan kembali (*reuseable*) sehingga kode juga lebih mudah untuk dipelihara.
+
+Semoga tulisan ini dapat bermamfaat bagi pembaca sekalian.
