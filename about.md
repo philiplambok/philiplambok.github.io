@@ -10,7 +10,13 @@ Perkenalkan, nama saya Philip Lambok seorang pemrogram Ruby.
 
 Saat ini saya sedang meraih mimpi saya untuk menjadi Full-stack programmer, walaupun mungkin saya tahu di dunia teknologi yang pesat ini mungkin menjadi Full-stack cukup sulit.
 
-Dalam keseharian, biasanya saya menghabiskan waktu dengan membaca buku-buku pemrograman, mengimplementasikannya teori-teorinya jika sempat, bermain dengan _competitive programming_ dan membaca manga atau menonton anime.
+Dalam keseharian, biasanya saya menghabiskan waktu dengan:
+
+- Membaca buku-buku pemrograman dan mengimplementasikannya teori-teorinya jika sempat.
+- Bereksperimen dengan paket-paket yang menarik yang ditemukan dari fitur _github explore_. Kode eksperimen yang saya tulis jika menurut saya mungkin berguna untuk publik, biasanya saya publikasikan kodenya [disini](https://github.com/sugar-for-pirate-king)
+- Bermain dengan _competitive programming_
+- Mendengarkan musik
+- Membaca manga atau menonton anime
 
 Beberapa buku favorit saya:
 
@@ -29,14 +35,14 @@ Buku yang sedang dibaca:
 
 - [ng-book: The complete book on Angular](https://www.ng-book.com/2/)
 - [Working Effectively with Legacy Code](https://www.amazon.com/Working-Effectively-Legacy-Michael-Feathers/dp/0131177052)
-- [Growing Object-Oriented Software Guided by Tests](http://www.growing-object-oriented-software.com/) ( _pending_ )
+- [Growing Object-Oriented Software Guided by Tests](https://www.amazon.com/Growing-Object-Oriented-Software-Guided-Tests/dp/0321503627) ( _pending_ )
 
 Buku yang ingin dibaca:
 
 - [Object Thinking](https://www.amazon.com/Object-Thinking-Developer-Reference-David/dp/0735619654/ref=as_li_ss_tl?s=books&ie=UTF8&qid=1513891361&sr=1-1&keywords=object+thinking&linkCode=sl1&tag=yegor256com-20&linkId=39f773ebf1e72d208d9f01082dd85072)
-- [Elegant Object](https://www.elegantobjects.org/)
+- [Elegant Object](https://www.yegor256.com/elegant-objects.html)
 
-Jika anda tertarik berdiskusi lebih lanjut seputar tulisan saya atau seputar pemrograman atau bahkan _request_ tema tulisan tertentu atau hal yang lainnya, anda bisa lontarkan surat elektronik ke alamat pribadi saya disini: philiplambok@gmail.com.
+Jika anda tertarik berdiskusi lebih lanjut seputar tulisan saya atau seputar pemrograman atau bahkan _request_ tema tulisan tertentu atau hal yang lainnya, anda bisa lontarkan surat elektronik ke alamat pribadi saya disini: philiplambok@gmail.com atau tambahkan isu di [repositorynya](https://github.com/philiplambok/philiplambok.github.io).
 
 Semoga tulisan-tulisan saya dapat bermamfaat bagi pembaca sekalian,
 

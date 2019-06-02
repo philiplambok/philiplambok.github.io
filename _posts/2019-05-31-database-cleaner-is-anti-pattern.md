@@ -2,7 +2,7 @@
 layout: post
 comments: true
 title:  "database_cleaner is anti-pattern"
-date:   2019-04-28 13:10:00 +0700
+date:   2019-05-31 13:10:00 +0700
 categories: rails-test
 comments:   true
 published: true
