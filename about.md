@@ -16,11 +16,11 @@ Jadi, jika anda memiliki saran atau kritik bisa langsung komentar ke tulisan ter
 
 Anda juga bisa _request_ tulisan atau topik-topik tertentu di [repository](https://github.com/philiplambok/philiplambok.github.io) saya dengan menambahkan isu baru disana.
 
-Saya juga suka membaca buku atau bermain _competitive programing_, temui saya disini yoo:
+Saya kadang juga suka bakar waktu dengan baca buku atau bermain _competitive programing_, temui saya disini yoo:
 
-- [https://www.goodreads.com/philip_lambok](https://www.goodreads.com/philip_lambok)
-- [https://leetcode.com/philiplambok/](https://leetcode.com/philiplambok/)
-- [https://www.hackerrank.com/philiplambok](https://www.hackerrank.com/philiplambok)
+- [goodreads.com/philip_lambok](https://www.goodreads.com/philip_lambok)
+- [leetcode.com/philiplambok/](https://leetcode.com/philiplambok/)
+- [hackerrank.com/philiplambok](https://www.hackerrank.com/philiplambok)
 
 Semoga tulisan-tulisan saya dapat bermamfaat bagi pembaca skalian,
 
