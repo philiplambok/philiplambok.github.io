@@ -288,16 +288,6 @@
   display: table;
 }
 
-.markdown-body table {
-  border-collapse: collapse;
-  border-spacing: 0;
-}
-
-.markdown-body td,
-.markdown-body th {
-  padding: 0;
-}
-
 .markdown-body details summary {
   cursor: pointer;
 }
@@ -523,7 +513,6 @@
 .markdown-body ol,
 .markdown-body p,
 .markdown-body pre,
-.markdown-body table,
 .markdown-body ul {
   margin-bottom: 16px;
   margin-top: 0;
@@ -648,37 +637,6 @@
 .markdown-body dl dd {
   margin-bottom: 16px;
   padding: 0 16px;
-}
-
-.markdown-body table {
-  display: block;
-  overflow: auto;
-  width: 100%;
-}
-
-.markdown-body table th {
-  font-weight: 600;
-}
-
-.markdown-body table td,
-.markdown-body table th {
-  border: 1px solid #dfe2e5;
-  padding: 6px 13px;
-}
-
-.markdown-body table tr {
-  background-color: #fff;
-  border-top: 1px solid #c6cbd1;
-}
-
-.markdown-body table tr:nth-child(2n) {
-  background-color: #f6f8fa;
-}
-
-.markdown-body img {
-  background-color: #fff;
-  box-sizing: content-box;
-  max-width: 100%;
 }
 
 .markdown-body img[align="right"] {
