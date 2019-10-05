@@ -4,7 +4,7 @@ title: "Test-driven development di Rails"
 date: 2019-08-25 12:00:00 +0700
 categories: tdd, rails6, vue.js
 comments: true
-published: true
+published: false
 ---
 
 Pada tulisan ini saya ingin berbagi bagaimana saya menulis kode test-driven development pada Rails. Saya akan meng-*cover* system test, model test dan request test. Kita juga akan menggunakan Rails 6 dan Vue.js pada teknologinya.
