@@ -2,7 +2,7 @@
 layout: post
 title: "Pengenalan form object di Rails"
 date: 2019-10-05 12:00:00 +0700
-categories: tdd, rails6, vue.js
+categories: rails, form-object
 comments: true
 published: true
 ---
