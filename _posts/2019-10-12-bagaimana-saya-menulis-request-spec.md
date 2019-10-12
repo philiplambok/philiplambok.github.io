@@ -2,7 +2,7 @@
 layout: post
 title: "Ngobrol tentang request spec"
 date: 2019-10-12 12:00:00 +0700
-categories: rails, form-object
+categories: rails, request-spec, tdd
 comments: true
 published: true
 ---
