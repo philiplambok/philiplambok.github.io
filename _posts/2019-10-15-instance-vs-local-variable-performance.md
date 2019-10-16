@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Instance vs Local Variable Performance"
-date: 2019-10-12 12:00:00 +0700
+date: 2019-10-15 12:00:00 +0700
 categories: ruby-benchmarking
 comments: true
 published: true
