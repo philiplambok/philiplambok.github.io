@@ -2,7 +2,7 @@
 layout: post
 title: "Refactoring Vue.js"
 date: 2019-10-26 11:00:00 +0700
-categories: vuejs, refactorign
+categories: vuejs, refactoring
 comments: true
 published: true
 ---
