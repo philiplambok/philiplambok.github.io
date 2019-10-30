@@ -92,7 +92,7 @@ Date:   Wed Oct 30 19:14:31 2019 +0700
     first commit
 ```
 
-*Commit* berhasil di squash, sekarang *welcome to merge*.
+*Commit* berhasil di squash, sekarang *welcome to merge*. Dan untuk sekedar info `$> git rebash -i HEAD~2` artinya kita ingin menggabungkan 2 commit dari *HEAD*, yaitu pada kasus ini adalah *third commit* dan *second commit*.
 
 Kira-kira itu saja tulisan kali ini, semoga dapat bermamfaat, *happy hacking~*.
 
