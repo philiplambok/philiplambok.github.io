@@ -1,17 +1,17 @@
 ---
 layout: post
-title: "Pengenalan git stash"
+title: "Pengenalan git squash"
 date: 2019-10-30 11:00:00 +0700
 categories: git, software-development
 comments: true
 published: true
 ---
 
-Dalam software development biasanya kita mengenal tiga fase, yaitu *development*, *staging* dan *production*. Setelah *pull-request*, kita lakukan *merge* ke branch *develop*, satu-per-satu *commit* tadi kita *cherry-pick* ke *staging* dan dari *staging* kita lakukan *merge* ke master (*production*).
+Dalam software development biasanya kita mengenal tiga fase, yaitu _development_, _staging_ dan _production_. Setelah _pull-request_, kita lakukan _merge_ ke branch _develop_, satu-per-satu _commit_ tadi kita _cherry-pick_ ke _staging_ dan dari _staging_ kita lakukan _merge_ ke master (_production_).
 
-Masalah yang sering terjadi adalah *conflict* kode ketika melakukan *cherry-pick* pada *commit* yang banyak saat membuat branch *staging*.
+Masalah yang sering terjadi adalah _conflict_ kode ketika melakukan _cherry-pick_ pada _commit_ yang banyak saat membuat branch _staging_.
 
-Melakukan git stash adalah salah satu solusi atas masalah tersebut. Git stash adalah fitur di Git untuk menggabungkan banyak *commit* menjadi sebuah *commit* saja, sehingga dapat mengurangi *conflict* yang terjadi saat *cherry-picking*.
+Melakukan git squash adalah salah satu solusi atas masalah tersebut. Git squash adalah fitur di Git untuk menggabungkan banyak _commit_ menjadi sebuah _commit_ saja, sehingga dapat mengurangi _conflict_ yang terjadi saat _cherry-picking_.
 
 Mari kita coba praktekan.
 
@@ -30,7 +30,7 @@ Date:   Wed Oct 30 19:14:31 2019 +0700
     first commit
 ```
 
-Dengan kode-kode diatas, kita membuat sebuah initial projek dengan satu kommit, sekarang kita coba implementasikan git-stashnya dengan membuat sebuah fitur baru(*branch* baru).
+Dengan kode-kode diatas, kita membuat sebuah initial projek dengan satu kommit, sekarang kita coba implementasikan git-squashnya dengan membuat sebuah fitur baru(_branch_ baru).
 
 ```sh
 $(new-feature)> git checkout -b new-feature
@@ -70,7 +70,7 @@ Date:   Wed Oct 30 19:14:31 2019 +0700
     first commit
 ```
 
-Sekarang kita sudah punya dua *commit* di branch *new-feature*. Mari kita implementasikan git stash pada branch ini agar hanya ada satu *commit* saja.
+Sekarang kita sudah punya dua _commit_ di branch _new-feature_. Mari kita implementasikan git squash pada branch ini agar hanya ada satu _commit_ saja.
 
 ```sh
 $(new-feature)> git rebash -i HEAD~2
@@ -92,7 +92,6 @@ Date:   Wed Oct 30 19:14:31 2019 +0700
     first commit
 ```
 
-*Commit* berhasil di squash, sekarang *welcome to merge*. Dan untuk sekedar info `$> git rebash -i HEAD~2` artinya kita ingin menggabungkan 2 commit dari *HEAD*, yaitu pada kasus ini adalah *third commit* dan *second commit*.
+_Commit_ berhasil di squash, sekarang _welcome to merge_. Dan untuk sekedar info `$> git rebash -i HEAD~2` artinya kita ingin menggabungkan 2 commit dari _HEAD_, yaitu pada kasus ini adalah _third commit_ dan _second commit_.
 
-Kira-kira itu saja tulisan kali ini, semoga dapat bermamfaat, *happy hacking~*.
-
+Kira-kira itu saja tulisan kali ini, semoga dapat bermamfaat, _happy hacking~_.
