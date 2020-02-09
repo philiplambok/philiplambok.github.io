@@ -1,8 +1,8 @@
 ---
 layout: post
-title: "Bereksperimen dalam mendesain API Wrapper"
+title: "Bereksperimen dalam mendesain API wrapper"
 date: 2020-02-09 11:00:00 +0700
-categories: api-wrapper, design-systemd
+categories: api-wrapper, design-system
 comments: true
 published: true
 ---
@@ -29,69 +29,58 @@ articles #> [{ id: 1, title: 'The title' }]
 
 Pada tulisan ini saya akan fokus bagaimana mendesain api wrapper yang punya konsistensi yang baik dan mudah dimengerti. Goalsnya adalah:
 - Mengimplementasikan CRUD (create, read, update, delete).
-- Bekerja dengan nested resources.
+- Bekerja dengan baik dengan nested resources.
 
 Mari kita mulai dengan CRUD sebuah posts.
 
+- Mendapatkan daftar postingan
 
-#### Mendapatkan daftar postingan
+  ```rb
+  client = Wrapper::Client.new
+  posts = client.posts.all
+  posts.to_json #> [{ id: 1, title: 'The title' }]
+  ```
+- Membuat postingan baru
 
-```rb
-client = Wrapper::Client.new
-posts = client.posts.all
-posts.to_json #> [{ id: 1, title: 'The title' }]
-```
+  ```rb
+  client = Wrapper::Client.new
+  post = client.posts.create(title: 'The second post')
+  post.to_json #> { id: 2, title: 'The second post' }
+  ```
+- Melihat postingan dari spesific id
 
+  ```rb
+  client = Wrapper::Client.new
+  post = client.posts.find(2)
+  post.to_json #> { id: 2, title: 'The second post' }
+  ```
+- Mengupdate postingan dari spesific id
 
-#### Membuat postingan baru
-
-```rb
-client = Wrapper::Client.new
-post = client.posts.create(title: 'The second post')
-post.to_json #> { id: 2, title: 'The second post' }
-```
-
-#### Melihat postingan dari spesific id
-
-```rb
-client = Wrapper::Client.new
-post = client.posts.find(2)
-post.to_json #> { id: 2, title: 'The second post' }
-```
-
-#### Mengpdate postingan dari spesific id
-
-```rb
-client = Wrapper::Client.new
-post = client.posts.find(2)
-post.update({title: 'The updated title'}) #> 
-post.to_json #> { id: 2, title: 'The updated title' }
-```
-
-#### Menghapus postingan dari spesific  id
-
-```rb
-client = Wrapper::Client.new
-post = client.posts.find(2)
-post.destroy #> { id: 2, title: 'The updated title' }
-```
-
-Dan untuk *nested resources*-nya bisa dibuat seperti ini, misalnya kita mengambil daftar komentar dari spesific postingan
-
-```rb
-client = Wrapper::Client.new
-post = client.posts.find(2)
-comments = post.comments 
-comments.to_json #> [{id: '1', user_id: 2, body: 'this is sample comment' }]
-```
-
-Dan jika kita ingin menggambil comment dari spesific idnya kita bisa melakukannya dengan cara ini: 
-
-```rb
-client = Wrapper::Client.new
-comment = client.comments.find(1)
-comment.to_json #> {id: '1', user_id: 2, body: 'this is sample comment' }
-```
+  ```rb
+  client = Wrapper::Client.new
+  post = client.posts.find(2)
+  post.update({title: 'The updated title'}) #> 
+  post.to_json #> { id: 2, title: 'The updated title' }
+  ```
+- Menghapus postingan dari spesific  id
+  ```rb
+  client = Wrapper::Client.new
+  post = client.posts.find(2)
+  post.destroy #> { id: 2, title: 'The updated title' }
+  ```
+- Bekerja dengan baik dengan nested resource, dan untuk *nested resources*-nya bisa dibuat seperti  ini, misalnya kita mengambil daftar komentar dari spesific postingan
+  ```rb
+  client = Wrapper::Client.new
+  post = client.posts.find(2)
+  comments = post.comments 
+  comments.to_json #> [{id: '1', user_id: 2, body: 'this is sample comment' }]
+  ```
+  dan jika kita ingin menggambil comment dari spesific idnya kita bisa melakukannya dengan cara ini: 
+  ```rb
+  client = Wrapper::Client.new
+  comment = client.comments.find(1)
+  comment.to_json #> {id: '1', user_id: 2, body: 'this is sample comment' }
+  ```
 
 Dengan memamfaatkan konsep dari *chaining method* saya kira kita dapat meningkatkan *readability*.
 
