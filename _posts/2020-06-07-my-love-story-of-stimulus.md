@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "My love story of stimulus.js"
+title:  "My love story with stimulus.js"
 date:   2020-06-07 10:10:00 +0700
 categories: jquery20, railsjs
 comments: true
