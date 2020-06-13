@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Realtime search with stimulus.js"
+title:  "Real-time search with stimulus.js"
 date:   2020-06-13 10:10:00 +0700
 categories: railsjs, stimulus
 comments: true
