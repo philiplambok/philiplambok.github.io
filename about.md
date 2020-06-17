@@ -8,7 +8,7 @@ Hi, selamat datang di blog sederhana ini.
 
 Perkenalkan, nama saya Philip Lambok.
 
-Saat ini saya bekerja sebagai programmer yang kesehariannya dihabiskan untuk menulis kode Ruby/Rails/Vue.js.
+Saat ini saya bekerja sebagai programmer di [mekari.com](https://mekari.com/) yang kesehariannya dihabiskan untuk menulis kode Ruby dan Javascript.
 
 Blog ini ditunjukan sebagai media berbagi saya saja, jadi kebayakan yang saya tulis hanyalah opini-opini saya atau topik-topik yang saya ketahui atau yang menarik bagi saya.
 
@@ -22,6 +22,6 @@ Saya kadang juga suka bakar waktu dengan baca buku atau bermain _competitive pro
 - [leetcode.com/philiplambok/](https://leetcode.com/philiplambok/)
 - [hackerrank.com/philiplambok](https://www.hackerrank.com/philiplambok)
 
-Semoga tulisan-tulisan saya dapat bermamfaat bagi pembaca skalian,
+Semoga tulisan-tulisan saya dapat bermamfaat bagi pembaca skalian.
 
-terima kasih.
+Terima kasih.
