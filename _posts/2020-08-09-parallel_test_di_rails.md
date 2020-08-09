@@ -7,8 +7,6 @@ comments: true
 published: true
 ---
 
-TLDR
-
 Tulisan ini akan singkat, gw cuman mau share hasil eksperimen di *weekend* ini terkait testing.
 
 Eksperimennya itu adalah oprek paket [parallel_test](https://github.com/grosser/parallel_tests).
