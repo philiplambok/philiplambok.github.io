@@ -2,7 +2,7 @@
 layout: post
 title:  "Mengenal feature toggle di Rails"
 date:   2020-10-31 10:10:00 +0700
-categories: toggle-feature, rails
+categories: feature-toggle, rails
 comments: true
 published: true
 ---
