@@ -1,0 +1,86 @@
+I"�<p>Oke, terkait dengan dua tulisan sebelumnya.</p>
+
+<p>Sekarang gw mau nulis tentang cara bikin “Infinite scroll” di Rails.</p>
+
+<p>Infinite scroll disini initinya sama kayak pagination seperti biasa, namun data yang sebelumnya tidak hilang, tapi tetep ada dihalaman yang sama.</p>
+
+<p>Kita akan punya sebuah link ‘Load more’, gitu. Setiap kita klik link tersebut maka akan muncul data baru dibawahnya.</p>
+
+<p>Kita akan menggunakan paket buatan <a href="https://basecamp.com/">Basecamp</a> yaitu <a href="https://github.com/basecamp/geared_pagination">geared_pagination</a>.</p>
+
+<p>Kenapa menggunakan paket ini?</p>
+
+<p>Dengan paket ini kita diberikan flexibilitas yang sangat cocok dengan kebutuhan infinite scroll. Berbeda dengan kebanyakan pake lain, records yang diberikan fixed, misalnya ada 100 data, dengan default per_page di set 10. Maka setiap halaman akan hanya ada 10 data saja.</p>
+
+<p>Namun, dengan paket ini, pagination kita menjadi page 1 (10 items), page 2 (20 items), page 3 (30 items) dan seterusnya.</p>
+
+<p>Sangat cocok dengan infinite scroll.</p>
+
+<p>Kalo gitu, mari kita mulai.</p>
+
+<p>Karna projeknya masih sama seperti sebelumnya, update controllernya menjadi seperti ini:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">index</span>
+  <span class="vi">@posts</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">all</span>
+  <span class="k">if</span> <span class="n">params</span><span class="p">[</span><span class="ss">:query</span><span class="p">].</span><span class="nf">present?</span>
+    <span class="vi">@posts</span> <span class="o">=</span> <span class="vi">@posts</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s1">'title LIKE ?'</span><span class="p">,</span> <span class="s2">"%</span><span class="si">#{</span><span class="n">params</span><span class="p">[</span><span class="ss">:query</span><span class="p">]</span><span class="si">}</span><span class="s2">%"</span><span class="p">)</span>
+  <span class="k">end</span>
+  <span class="n">set_page_and_extract_portion_from</span> <span class="vi">@posts</span>
+  <span class="vi">@records</span> <span class="o">=</span> <span class="vi">@page</span><span class="p">.</span><span class="nf">last?</span> <span class="p">?</span> <span class="vi">@page</span><span class="p">.</span><span class="nf">recordset</span><span class="p">.</span><span class="nf">records</span> <span class="p">:</span> <span class="vi">@page</span><span class="p">.</span><span class="nf">records</span>
+  <span class="n">respond_to</span> <span class="k">do</span> <span class="o">|</span><span class="nb">format</span><span class="o">|</span>
+    <span class="nb">format</span><span class="p">.</span><span class="nf">html</span> <span class="p">{</span> <span class="n">render</span> <span class="ss">:index</span> <span class="p">}</span>
+    <span class="nb">format</span><span class="p">.</span><span class="nf">js</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Kode yang ditambahkan ini:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">set_page_and_extract_portion_from</span> <span class="vi">@posts</span>
+<span class="vi">@records</span> <span class="o">=</span> <span class="vi">@page</span><span class="p">.</span><span class="nf">last?</span> <span class="p">?</span> <span class="vi">@page</span><span class="p">.</span><span class="nf">recordset</span><span class="p">.</span><span class="nf">records</span> <span class="p">:</span> <span class="vi">@page</span><span class="p">.</span><span class="nf">records</span>
+</code></pre></div></div>
+
+<ul>
+  <li>Kode ini <code class="language-plaintext highlighter-rouge">set_page_and_extract_portion_from @posts</code> akan membuat instance <code class="language-plaintext highlighter-rouge">@page</code></li>
+  <li>Kode ini <code class="language-plaintext highlighter-rouge">@records = @page.last? ? @page.recordset.records : @page.records</code> akan mengeset <code class="language-plaintext highlighter-rouge">@records</code> dengan semua data jika kita sedang berada dihalaman akhir.</li>
+</ul>
+
+<p>Sekarang kita ke viewsnya <code class="language-plaintext highlighter-rouge">posts/_posts.html.erb</code>, update menjadi seperti ini:</p>
+
+<div class="language-erb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"posts"</span><span class="nt">&gt;</span>
+  <span class="cp">&lt;%=</span> <span class="n">render</span> <span class="s1">'posts'</span><span class="p">,</span> <span class="ss">posts: </span><span class="vi">@records</span> <span class="cp">%&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+
+<span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"load-more-data"</span><span class="nt">&gt;</span>
+  <span class="cp">&lt;%=</span> <span class="n">render</span> <span class="s1">'load_more_data_link'</span><span class="p">,</span> <span class="ss">page: </span><span class="vi">@page</span><span class="p">,</span> <span class="ss">remote: </span><span class="kp">true</span> <span class="cp">%&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+</code></pre></div></div>
+
+<p>Di <code class="language-plaintext highlighter-rouge">posts/_load_more_data_link.html.erb</code>-nya dibuat gini:</p>
+
+<div class="language-erb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;%=</span> <span class="n">link_to</span> <span class="s2">"Load more data"</span><span class="p">,</span> <span class="n">posts_path</span><span class="p">(</span><span class="ss">page: </span><span class="n">page</span><span class="p">.</span><span class="nf">next_param</span><span class="p">),</span> <span class="ss">remote: </span><span class="kp">true</span> <span class="k">unless</span> <span class="n">page</span><span class="p">.</span><span class="nf">last?</span> <span class="cp">%&gt;</span>
+</code></pre></div></div>
+
+<p>Dan pada <code class="language-plaintext highlighter-rouge">posts/index.js.erb</code>nya diupdate jadi gini:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># ...</span>
+<span class="n">document</span><span class="p">.</span><span class="nf">getElementById</span><span class="p">(</span><span class="s1">'load-more-data'</span><span class="p">).</span><span class="nf">innerHTML</span> <span class="o">=</span> <span class="sb">`&lt;%= render 'load_more_data_link', page: @page %&gt;`</span>
+</code></pre></div></div>
+
+<p>Maka hasilnya akan menjadi seperti ini:</p>
+
+<p><img src="/assets/infinite-scroll.gif" alt="Infinite scroll" /></p>
+
+<hr />
+
+<p>Yups thats works!</p>
+
+<p>Here’s how to write an “infinite scroll” feature in rails way.</p>
+
+<p>Jika anda perhatikan kita hanya menggunakan single javascript code saja <code class="language-plaintext highlighter-rouge">document.innerHTML</code> saja dalam membuat fitur ini.</p>
+
+<p>Sampai ketemu di tulisan yang lain!</p>
+
+<p>Happy hacking!</p>
+
+:ET

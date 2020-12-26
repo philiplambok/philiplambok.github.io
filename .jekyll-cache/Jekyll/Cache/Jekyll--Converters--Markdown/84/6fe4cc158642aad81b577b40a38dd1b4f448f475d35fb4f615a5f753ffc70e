@@ -1,0 +1,81 @@
+I"�<p>Karna tulisan ini ditulis di <em>weekday</em>, jadi tulisan ini mungkin akan sangat singkat :)</p>
+
+<p>Jika anda sudah membaca tulisan saya sebelumnya yang berjudul <a href="https://philiplambok.github.io/clean-code/2019/07/06/tips-menulis-private-methods.html">Tips saat menulis private method</a> mungkin anda sudah tahu kalo saya sangat-sangat menyarankan menggunakan local variable dibanding instance variable pada program anda tulis.</p>
+
+<p>Disana saya menyarankan anda membuat fitur dengan membaginya menjadi <em>function-function</em> kecil dan bukan prosedur-prosedur. Prosedur disini maksud saya <em>function</em> yang tidak membalikan data, sedangkan “function” adalah <em>function</em> yang membalikan data.</p>
+
+<p>Pada buku <a href="https://www.amazon.com/Code-Complete-Practical-Handbook-Construction/dp/0735619670">Code Complete</a> juga menyarankan ini:</p>
+
+<blockquote>
+  <p>Keep Variables “Live” for as Short a Time as Possible</p>
+</blockquote>
+
+<p>Jika anda menyelesaikan masalah dengan menggunakan instance variable otomatis variable tersebut akan terus hidup sampai <em>main function</em> anda selesai dipanggil.</p>
+
+<p>Tapi untuk tulisan kali ini saya ingin ngobrol tentang performancenya bukan dari sisi desainnya. Mungkin dari sisi design bisa saya buat lagi di tulisan yang lain :)</p>
+
+<p>Terinspirasi dari tulisan yang udah lumayan lama dipublish oleh Aaron yang berjudul <a href="https://tenderlovemaking.com/2019/06/26/instance-variable-performance.html">Instance Variable Performance</a> saya jadi melakukan <em>benchmarking</em> kecil-kecilan juga tentang perbedaan penggunakan instance vs local variable.</p>
+
+<p>Kira-kira <em>benchmarking</em>-nya sebagai berikut:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$&gt;</span> <span class="nb">cat </span>bench.rb
+require <span class="s1">'benchmark'</span>
+
+class Instance
+  def initialize
+    @satu <span class="o">=</span> <span class="s1">'satu'</span>
+    @dua <span class="o">=</span> <span class="s1">'dua'</span>
+    @tiga <span class="o">=</span> <span class="s1">'tiga'</span>
+    @empat <span class="o">=</span> <span class="s1">'empat'</span>
+    @lima <span class="o">=</span> <span class="s1">'lima'</span>
+  end
+end
+
+class Local
+  def initialize
+    satu <span class="o">=</span> <span class="s1">'satu'</span>
+    dua <span class="o">=</span> <span class="s1">'dua'</span>
+    tiga <span class="o">=</span> <span class="s1">'tiga'</span>
+    empat <span class="o">=</span> <span class="s1">'empat'</span>
+    lima <span class="o">=</span> <span class="s1">'lima'</span>
+  end
+end
+
+n <span class="o">=</span> 5_000_000
+
+Benchmark.bm <span class="k">do</span> |x|
+  x.report <span class="o">{</span> n.times <span class="o">{</span> Instance.new <span class="o">}</span> <span class="o">}</span>
+  x.report <span class="o">{</span> n.times <span class="o">{</span> Local.new <span class="o">}</span> <span class="o">}</span>
+end
+
+<span class="nv">$&gt;</span> ruby bench.rb
+       user     system      total        real
+   2.535891   0.000405   2.536296 <span class="o">(</span>  2.536660<span class="o">)</span>
+   1.428839   0.000010   1.428849 <span class="o">(</span>  1.429049<span class="o">)</span>
+</code></pre></div></div>
+
+<p>Dapat dilihat dari hasil diatas bahwa secara performa kelas yang menggunakan local variable lebih cepat (<strong>1.429049</strong>) dibandingkan kelas yang menggunakan instance variable (<strong>2.536660</strong>).</p>
+
+<p>Saya tidak melarang anda untuk menggunakan instance variable, tapi sebaiknya coba dipikirkan dahulu untuk menggunakan local variable dengan membuat <em>function</em> yang mempunyai kembalian.</p>
+
+<p>Karna menggunakan local variable selain membuat design suatu kelas menjadi mudah untuk dipelihara dan juga dapat meningkatkan performa.</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># bad</span>
+<span class="k">def</span> <span class="nf">call</span>
+  <span class="n">crete_user</span>
+  <span class="n">create_organization</span>
+  <span class="n">create_log_reports</span>
+<span class="k">end</span>
+
+<span class="c1"># good</span>
+<span class="k">def</span> <span class="nf">call</span>
+  <span class="n">user</span> <span class="o">=</span> <span class="n">create_user</span><span class="p">(</span><span class="vi">@user_param</span><span class="p">)</span>
+  <span class="n">organization</span> <span class="o">=</span> <span class="n">create_organization</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="vi">@organization_params</span><span class="p">)</span>
+  <span class="n">create_log_reports</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">organization</span><span class="p">)</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Terima kasih telah membaca tulisan sederhana ini, semoga tulisan dapat bermamfaat bagi pembaca skalian.</p>
+
+<p><em>Have a good day~</em></p>
+:ET

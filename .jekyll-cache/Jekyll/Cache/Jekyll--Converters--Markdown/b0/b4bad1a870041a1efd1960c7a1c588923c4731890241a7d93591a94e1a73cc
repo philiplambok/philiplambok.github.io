@@ -1,0 +1,86 @@
+I"…<p>Dalam software development biasanya kita mengenal tiga fase, yaitu <em>development</em>, <em>staging</em> dan <em>production</em>. Setelah <em>pull-request</em>, kita lakukan <em>merge</em> ke branch <em>develop</em>, satu-per-satu <em>commit</em> tadi kita <em>cherry-pick</em> ke <em>staging</em> dan dari <em>staging</em> kita lakukan <em>merge</em> ke master (<em>production</em>).</p>
+
+<p>Masalah yang sering terjadi adalah <em>conflict</em> kode ketika melakukan <em>cherry-pick</em> pada <em>commit</em> yang banyak saat membuat branch <em>staging</em>.</p>
+
+<p>Melakukan git squash adalah salah satu solusi atas masalah tersebut. Git squash adalah fitur di Git untuk menggabungkan banyak <em>commit</em> menjadi sebuah <em>commit</em> saja, sehingga dapat mengurangi <em>conflict</em> yang terjadi saat <em>cherry-picking</em>.</p>
+
+<p>Mari kita coba praktekan.</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$&gt;</span> git init
+<span class="si">$(</span>master<span class="si">)</span><span class="o">&gt;</span> <span class="nb">echo</span> <span class="s1">'first commit'</span> <span class="o">&gt;&gt;</span> hello.txt
+<span class="si">$(</span>master<span class="si">)</span><span class="o">&gt;</span> <span class="nb">cat </span>hello.text
+first commit
+<span class="si">$(</span>master<span class="si">)</span><span class="o">&gt;</span> git add <span class="nb">.</span>
+<span class="si">$(</span>master<span class="si">)</span><span class="o">&gt;</span> git commit <span class="nt">-m</span> <span class="s1">'first commit'</span>
+<span class="si">$(</span>master<span class="si">)</span><span class="o">&gt;</span> git log
+commit 9c3cf0ad2fc3375aa306b2c002d00e37356bb7f6 <span class="o">(</span>origin/master, master<span class="o">)</span>
+Author: philiplambok &lt;philiplambok71@gmail.com&gt;
+Date:   Wed Oct 30 19:14:31 2019 +0700
+
+    first commit
+</code></pre></div></div>
+
+<p>Dengan kode-kode diatas, kita membuat sebuah initial projek dengan satu kommit, sekarang kita coba implementasikan git-squashnya dengan membuat sebuah fitur baru(<em>branch</em> baru).</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="si">$(</span>new-feature<span class="si">)</span><span class="o">&gt;</span> git checkout <span class="nt">-b</span> new-feature
+<span class="si">$(</span>new-feature<span class="si">)</span><span class="o">&gt;</span> <span class="nb">echo</span> <span class="s1">'second commit'</span> <span class="o">&gt;&gt;</span> hello.txt
+<span class="si">$(</span>new-feature<span class="si">)</span><span class="o">&gt;</span> git add <span class="nb">.</span>
+<span class="si">$(</span>new-feature<span class="si">)</span><span class="o">&gt;</span> git commit <span class="nt">-m</span> <span class="s1">'second commit'</span>
+<span class="si">$(</span>new-feature<span class="si">)</span><span class="o">&gt;</span> git log
+commit b502e9dbd99924e613d85c39255d7406b128d15e <span class="o">(</span>HEAD -&gt; new-feature2<span class="o">)</span>
+Author: philiplambok &lt;philiplambok71@gmail.com&gt;
+Date:   Wed Oct 30 19:35:53 2019 +0700
+
+    second commit
+commit 9c3cf0ad2fc3375aa306b2c002d00e37356bb7f6 <span class="o">(</span>origin/master, master<span class="o">)</span>
+Author: philiplambok &lt;philiplambok71@gmail.com&gt;
+Date:   Wed Oct 30 19:14:31 2019 +0700
+
+    first commit
+<span class="si">$(</span>new-feature<span class="si">)</span><span class="o">&gt;</span> <span class="nb">echo</span> <span class="s1">'third commit'</span> <span class="o">&gt;&gt;</span> hello.txt
+<span class="si">$(</span>new-feature<span class="si">)</span><span class="o">&gt;</span> git add <span class="nb">.</span>
+<span class="si">$(</span>new-feature<span class="si">)</span><span class="o">&gt;</span> git commit <span class="nt">-m</span> <span class="s1">'third commit'</span>
+<span class="si">$(</span>new-feature<span class="si">)</span><span class="o">&gt;</span> git log
+commit 3aca7971c0e77a671ccfc25a8e6ef39d40052cb3 <span class="o">(</span>HEAD -&gt; new-feature2<span class="o">)</span>
+Author: philiplambok &lt;philiplambok71@gmail.com&gt;
+Date:   Wed Oct 30 19:37:21 2019 +0700
+
+    third commit
+commit b502e9dbd99924e613d85c39255d7406b128d15e
+Author: philiplambok &lt;philiplambok71@gmail.com&gt;
+Date:   Wed Oct 30 19:35:53 2019 +0700
+
+    second commit
+
+commit 9c3cf0ad2fc3375aa306b2c002d00e37356bb7f6 <span class="o">(</span>origin/master, master<span class="o">)</span>
+Author: philiplambok &lt;philiplambok71@gmail.com&gt;
+Date:   Wed Oct 30 19:14:31 2019 +0700
+
+    first commit
+</code></pre></div></div>
+
+<p>Sekarang kita sudah punya dua <em>commit</em> di branch <em>new-feature</em>. Mari kita implementasikan git squash pada branch ini agar hanya ada satu <em>commit</em> saja.</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="si">$(</span>new-feature<span class="si">)</span><span class="o">&gt;</span> git rebash <span class="nt">-i</span> HEAD~2
+pick b502e9d second commit
+squash 3aca797 third commit
+<span class="nt">------</span>
+<span class="c"># This is a combination of 2 commits.</span>
+  Squased commit
+<span class="si">$(</span>new-feature<span class="si">)</span><span class="o">&gt;</span> git log
+commit d6562c011d4b30e8271eed39ddf113cd454fa4c6 <span class="o">(</span>HEAD -&gt; new-feature2<span class="o">)</span>
+Author: philiplambok &lt;philiplambok71@gmail.com&gt;
+Date:   Wed Oct 30 19:35:53 2019 +0700
+
+    Squased commit
+commit 9c3cf0ad2fc3375aa306b2c002d00e37356bb7f6 <span class="o">(</span>origin/master, master<span class="o">)</span>
+Author: philiplambok &lt;philiplambok71@gmail.com&gt;
+Date:   Wed Oct 30 19:14:31 2019 +0700
+
+    first commit
+</code></pre></div></div>
+
+<p><em>Commit</em> berhasil di squash, sekarang <em>welcome to merge</em>. Dan untuk sekedar info <code class="language-plaintext highlighter-rouge">$&gt; git rebash -i HEAD~2</code> artinya kita ingin menggabungkan 2 commit dari <em>HEAD</em>, yaitu pada kasus ini adalah <em>third commit</em> dan <em>second commit</em>.</p>
+
+<p>Kira-kira itu saja tulisan kali ini, semoga dapat bermamfaat, <em>happy hacking~</em>.</p>
+:ET

@@ -1,0 +1,170 @@
+I"í7<p>Rails 6 menghadirkan fitur <em>webpacker-by-default</em> yang membuat aplikasi Rails menjadi aplikasi yang <em>hybrid-by-default</em>. Maka daripada itu API menjadi sangat penting karena sudah menjadi bagian dari core development pada Rails nantinya.</p>
+
+<p>Saya pun sekarang sudah membagi Rails menjadi dua layer yang berbeda yaitu layer web dan layer API:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># config/routes.rb</span>
+
+<span class="n">scope</span> <span class="ss">module: :web</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:users</span>
+<span class="k">end</span>
+
+<span class="n">namespace</span> <span class="ss">:api</span> <span class="k">do</span>
+  <span class="n">namespace</span> <span class="ss">:v1</span> <span class="k">do</span>
+    <span class="n">resources</span> <span class="ss">:users</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Berbicara tentang API maka kita akan berbicara tentang <em>request spec</em> yang memang tipe kode test yang khusus untuk melakukan test pada API.</p>
+
+<p>Tulisan ini akan singkat seperti biasanya, saya hanya ingin berbagi bagaimana saya mengetest api saya, dan bagaimana solusi saya atas masalah API yang memerlukan otentikasi.</p>
+
+<p>Seperti biasa, saya akan menjelaskannya sambil membuat studi kasus. Kita akan membaut dua studi kasus yang berbeda, yaitu:</p>
+<ol>
+  <li>Menampikan data user dari id tertentu.</li>
+  <li>Menampilkan data user yang sedang login.</li>
+</ol>
+
+<p>Oke, sekarang mari kita bahas satu-per-satu</p>
+
+<h4 id="1-menampilkan-data-user-dari-id-tertentu">1. Menampilkan data user dari id tertentu</h4>
+<p>Kita mulai dari kode testnya terlebih dahulu:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># frozen_string_literal: true</span>
+
+<span class="nb">require</span> <span class="s1">'rails_helper'</span>
+
+<span class="no">RSpec</span><span class="p">.</span><span class="nf">describe</span> <span class="s1">'Show spesific user json '</span><span class="p">,</span> <span class="ss">type: :request</span> <span class="k">do</span>
+  <span class="n">it</span> <span class="s1">'returns user json'</span> <span class="k">do</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">,</span> <span class="ss">username: </span><span class="s1">'pquest'</span><span class="p">,</span> <span class="ss">email: </span><span class="s1">'pquest@gmail.com'</span><span class="p">)</span>
+    <span class="n">get</span> <span class="s2">"/api/v1/users/</span><span class="si">#{</span><span class="n">user</span><span class="p">.</span><span class="nf">id</span><span class="si">}</span><span class="s2">"</span>
+    <span class="n">response_json</span> <span class="o">=</span> <span class="no">JSON</span><span class="p">.</span><span class="nf">parse</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="nf">body</span><span class="p">)</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">response_json</span><span class="p">[</span><span class="s1">'username'</span><span class="p">]).</span><span class="nf">to</span> <span class="n">eq</span> <span class="s1">'pquest'</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">response_json</span><span class="p">[</span><span class="s1">'email'</span><span class="p">]).</span><span class="nf">to</span> <span class="n">eq</span> <span class="s1">'pquest@gmail.com'</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Testnya akan failed, sekarang waktunya untuk membuat testnya menjadi sukses.</p>
+
+<p>Tambahkan routing apinya di <code class="language-plaintext highlighter-rouge">config/routes.rb</code>:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># frozen_string_literal: true</span>
+
+<span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">namespace</span> <span class="ss">:api</span> <span class="k">do</span>
+    <span class="n">namespace</span> <span class="ss">:v1</span> <span class="k">do</span>
+      <span class="n">resources</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">only: </span><span class="p">[</span><span class="ss">:show</span><span class="p">]</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Lalu terakhir buat controllernya <code class="language-plaintext highlighter-rouge">app/controllers/api/v1/users_controller.rb</code>:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># frozen_string_literal: true</span>
+
+<span class="k">module</span> <span class="nn">Api</span>
+  <span class="k">module</span> <span class="nn">V1</span>
+    <span class="k">class</span> <span class="nc">UsersController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+      <span class="k">def</span> <span class="nf">show</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">find_by</span><span class="p">(</span><span class="ss">id: </span><span class="n">params</span><span class="p">[</span><span class="ss">:id</span><span class="p">])</span>
+        <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span>
+          <span class="ss">username: </span><span class="n">user</span><span class="p">.</span><span class="nf">username</span><span class="p">,</span>
+          <span class="ss">email: </span><span class="n">user</span><span class="p">.</span><span class="nf">email</span>
+        <span class="p">}</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Selesai. Maka studi kasus yang pertama kita sudah selesai.</p>
+
+<p>Sebagai catatan saja, mungkin anda bisa lihat kalo saya lebih suka untuk menggunakan real data dalam melakukan ekspektasinya, contohnya daripada menulis <code class="language-plaintext highlighter-rouge">expect(response_json['username']).to eq user.username</code> saya lebih suka untuk menulisnya menjadi <code class="language-plaintext highlighter-rouge">expect(response_json['username']).to eq 'pquest'</code>.</p>
+
+<p>Mungkin bagi anda tidak terlalu mempermasalahakan hal tersebut tapi secara psikologi <code class="language-plaintext highlighter-rouge">user.username</code> tidak semua orang yakin 100% kalo nilainya pasti <code class="language-plaintext highlighter-rouge">pquest</code> :).</p>
+
+<p>Lalu catatan yang kedua adalah menggunakan <code class="language-plaintext highlighter-rouge">JSON.parse</code>. Dengan method itu kita mengekspektasikan responsenya layaknya object, bukan string.</p>
+
+<h4 id="2-menampilkan-data-user-yang-sedang-login">2. Menampilkan data user yang sedang login</h4>
+<p>Sebagai aplikasi <em>hybrid</em>, maka dalam otentikasinya akan berkutat pada <em>sessions</em>, berbeda dangan aplikasi, model SPA yang otentikasinya menggunakan jwt token, token yang terus dilempar setiap requestnya sebagai identikasi dari pelempar request yang bersangkutan.</p>
+
+<p>Sedangkan pada request spec berbeda dengan controller spec. Dimana request spec tidak support membuatkan session baru pada kode testnya. Maka, untuk request spec dengan model yang seperti ini kita akan menggunakan <em>mock</em> atau <em>stub</em>.</p>
+
+<p>Contohnya kode test untuk studi kasus ini menjadi:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># frozen_string_literal: true</span>
+
+<span class="nb">require</span> <span class="s1">'rails_helper'</span>
+
+<span class="no">RSpec</span><span class="p">.</span><span class="nf">describe</span> <span class="s1">'Show current user json'</span><span class="p">,</span> <span class="ss">type: :request</span> <span class="k">do</span>
+  <span class="n">it</span> <span class="s1">'returns current user json'</span> <span class="k">do</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">,</span> <span class="ss">username: </span><span class="s1">'pquest'</span><span class="p">,</span> <span class="ss">email: </span><span class="s1">'pquest@gmail.com'</span><span class="p">)</span>
+    <span class="n">sign_in_as</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+    <span class="n">get</span> <span class="s1">'/api/v1/me'</span>
+    <span class="n">response_json</span> <span class="o">=</span> <span class="no">JSON</span><span class="p">.</span><span class="nf">parse</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="nf">body</span><span class="p">)</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">response_json</span><span class="p">[</span><span class="s1">'username'</span><span class="p">]).</span><span class="nf">to</span> <span class="n">eq</span> <span class="s1">'pquest'</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">response_json</span><span class="p">[</span><span class="s1">'email'</span><span class="p">]).</span><span class="nf">to</span> <span class="n">eq</span> <span class="s1">'pquest@gmail.com'</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">sign_in_as</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+    <span class="n">allow_any_instance_of</span><span class="p">(</span><span class="no">ApplicationController</span><span class="p">).</span><span class="nf">to</span><span class="p">(</span>
+      <span class="n">receive</span><span class="p">(</span><span class="ss">:current_user</span><span class="p">).</span><span class="nf">and_return</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+    <span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Pada kode test diatas kita akan melakukan <em>stub</em> pada <em>return value</em> untuk <em>method</em> <code class="language-plaintext highlighter-rouge">current_user</code> di dalam kelas <code class="language-plaintext highlighter-rouge">ApplicationController</code>.</p>
+
+<p>Untuk implementasinya kita tambahkan kode di <code class="language-plaintext highlighter-rouge">config/routes.rb</code></p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># frozen_string_literal: true</span>
+
+<span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">namespace</span> <span class="ss">:api</span> <span class="k">do</span>
+    <span class="n">namespace</span> <span class="ss">:v1</span> <span class="k">do</span>
+      <span class="n">resources</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">only: </span><span class="p">[</span><span class="ss">:show</span><span class="p">]</span>
+      <span class="n">resources</span> <span class="ss">:me</span><span class="p">,</span> <span class="ss">only: </span><span class="p">[</span><span class="ss">:index</span><span class="p">]</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Lalu untuk controllernya:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># frozen_string_literal: true</span>
+
+<span class="k">module</span> <span class="nn">Api</span>
+  <span class="k">module</span> <span class="nn">V1</span>
+    <span class="k">class</span> <span class="nc">MeController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+      <span class="k">def</span> <span class="nf">index</span>
+        <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span>
+          <span class="ss">username: </span><span class="n">current_user</span><span class="p">.</span><span class="nf">username</span><span class="p">,</span>
+          <span class="ss">email: </span><span class="n">current_user</span><span class="p">.</span><span class="nf">email</span>
+        <span class="p">}</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Maka kode test kita akan <em>passed</em>. Method <code class="language-plaintext highlighter-rouge">current_user</code> sendiri kita dapatkan dari session <em>user_id</em> yang dibuat ketika login lewat form.</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># frozen_string_literal: true</span>
+
+<span class="k">class</span> <span class="nc">ApplicationController</span> <span class="o">&lt;</span> <span class="no">ActionController</span><span class="o">::</span><span class="no">Base</span>
+  <span class="k">def</span> <span class="nf">current_user</span>
+    <span class="no">User</span><span class="p">.</span><span class="nf">find_by</span><span class="p">(</span><span class="ss">id: </span><span class="n">session</span><span class="p">[</span><span class="ss">:user_id</span><span class="p">])</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<hr />
+<p>Sekian untuk tulisan kali ini, kiranya tulisan ini bisa bermafaat untuk pembaca skalian.</p>
+
+<p><em>Happy hacking~</em></p>
+:ET

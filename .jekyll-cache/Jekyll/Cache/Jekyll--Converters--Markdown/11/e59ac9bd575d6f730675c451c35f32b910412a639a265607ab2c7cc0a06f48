@@ -1,0 +1,107 @@
+I"$<p>Akhirnya Rails 6.0.0 sudah rilis secara resmi pada <a href="https://weblog.rubyonrails.org/2019/8/15/Rails-6-0-final-release/">tanggal 15 Agustus kemarin</a>.</p>
+
+<p>Pada versi ini, Rails membawa banyak perubahan-perubahan yang sangat menyenangkan para rails developer seperti <em>webpacker by default</em>, <em>multiple database</em>, <em>action text</em>, <em>pararel testing</em> dan lain-lain.</p>
+
+<p>Namun saat ini yang saya ingin bahas disini bukan fitur-fitur tersebut, melainkan sebuah module baru di dalam ActiveModel yaitu <a href="https://api.rubyonrails.org/classes/ActiveModel/Serialization.html">Serialization</a>.</p>
+
+<p>Akhirnya setelah penantian yang cukup panjang, rails dapat memiliki <em>serializer</em>-nya sendiri hehehe</p>
+
+<p>Jika kita lihat <a href="https://api.rubyonrails.org/classes/ActiveModel/Serialization.html">dokumentasi yang disediakan</a> kita bisa membuat kelas <em>serializer</em> dengan langsung meng-<em>include</em> modulenya seperti ini:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Person</span>
+  <span class="kp">include</span> <span class="no">ActiveModel</span><span class="o">::</span><span class="no">Serialization</span>
+
+  <span class="nb">attr_accessor</span> <span class="ss">:name</span>
+
+  <span class="k">def</span> <span class="nf">attributes</span>
+    <span class="p">{</span><span class="s1">'name'</span> <span class="o">=&gt;</span> <span class="kp">nil</span><span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Dan untuk penggunaanya seperti ini:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">person</span> <span class="o">=</span> <span class="no">Person</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">person</span><span class="p">.</span><span class="nf">serializable_hash</span>   <span class="c1"># =&gt; {"name"=&gt;nil}</span>
+<span class="n">person</span><span class="p">.</span><span class="nf">name</span> <span class="o">=</span> <span class="s2">"Bob"</span>
+<span class="n">person</span><span class="p">.</span><span class="nf">serializable_hash</span>   <span class="c1"># =&gt; {"name"=&gt;"Bob"}</span>
+</code></pre></div></div>
+
+<p>Atau jika anda ingin mengeluarkan langsung sebuah json dari <em>serializer</em> anda:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Person</span>
+  <span class="kp">include</span> <span class="no">ActiveModel</span><span class="o">::</span><span class="no">Serializers</span><span class="o">::</span><span class="no">JSON</span>
+
+  <span class="nb">attr_accessor</span> <span class="ss">:name</span>
+
+  <span class="k">def</span> <span class="nf">attributes</span>
+    <span class="p">{</span><span class="s1">'name'</span> <span class="o">=&gt;</span> <span class="kp">nil</span><span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Untuk penggunaannya:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">person</span> <span class="o">=</span> <span class="no">Person</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">person</span><span class="p">.</span><span class="nf">serializable_hash</span>   <span class="c1"># =&gt; {"name"=&gt;nil}</span>
+<span class="n">person</span><span class="p">.</span><span class="nf">as_json</span>             <span class="c1"># =&gt; {"name"=&gt;nil}</span>
+<span class="n">person</span><span class="p">.</span><span class="nf">to_json</span>             <span class="c1"># =&gt; "{\"name\":null}"</span>
+
+<span class="n">person</span><span class="p">.</span><span class="nf">name</span> <span class="o">=</span> <span class="s2">"Bob"</span>
+<span class="n">person</span><span class="p">.</span><span class="nf">serializable_hash</span>   <span class="c1"># =&gt; {"name"=&gt;"Bob"}</span>
+<span class="n">person</span><span class="p">.</span><span class="nf">as_json</span>             <span class="c1"># =&gt; {"name"=&gt;"Bob"}</span>
+<span class="n">person</span><span class="p">.</span><span class="nf">to_json</span>             <span class="c1"># =&gt; "{\"name\":\"Bob\"}"</span>
+</code></pre></div></div>
+
+<p>Semenjak kita menggunakan rails yang menyediakan <code class="language-plaintext highlighter-rouge">render json:</code> seharusnya kita tidak memperlukan <em>serializer</em> yang menghasilkan data json langsung karna yang kita butuhkan cukup <em>hash</em> saja.</p>
+
+<p>Tapi mungkin <em>module</em> ini akan diperlukan untuk anda yang menggunakan ActiveRecord namun tidak menggunakan Rails. Atau anda menggunakan rails namun lebih suka dengan method <code class="language-plaintext highlighter-rouge">as_json()</code> daripada <code class="language-plaintext highlighter-rouge">serializable_hash()</code> yang bisa kita lihat kedua method tersebut adalah sama :D.</p>
+
+<p>Beberapa contoh diatas saya ambil dari dokumentasinya langsung, namun pada realitas kita perlu mengubah kelas-kelas ini. Untuk menjelaskan ini mari kita buat contoh kasus dengan menampilkan data json <em>article</em> dari <em>article</em> tertentu berdasarkan id-nya.</p>
+
+<p>Pada <em>controller</em>, kita akan membuatnya seperti ini:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">ArticleController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">show</span>
+    <span class="n">article</span> <span class="o">=</span> <span class="no">Article</span><span class="p">.</span><span class="nf">find_by</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:id</span><span class="p">])</span>
+    <span class="n">serializer</span> <span class="o">=</span> <span class="no">ArticleSerializer</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">article</span><span class="p">)</span>
+    <span class="n">serializer_hash</span> <span class="o">=</span> <span class="n">serializer</span><span class="p">.</span><span class="nf">serializable_hash</span>
+    <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">article: </span><span class="n">serializer_hash</span> <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Untuk kode <em>serializer</em>-nya kita dapat membuatnya seperti ini:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">ArticleSerializer</span>
+  <span class="kp">include</span> <span class="no">ActiveModel</span><span class="o">::</span><span class="no">Serialization</span>
+
+  <span class="nb">attr_reader</span> <span class="ss">:title</span><span class="p">,</span> <span class="ss">:body</span>
+
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">article</span><span class="p">)</span>
+    <span class="vi">@title</span> <span class="o">=</span> <span class="n">article</span><span class="p">.</span><span class="nf">title</span>
+    <span class="vi">@body</span> <span class="o">=</span> <span class="n">article</span><span class="p">.</span><span class="nf">body</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">attributes</span>
+    <span class="p">{</span> <span class="s1">'title'</span> <span class="o">=&gt;</span> <span class="kp">nil</span><span class="p">,</span> <span class="s1">'body'</span> <span class="o">=&gt;</span> <span class="kp">nil</span> <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Maka hasilnya adalah</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"article"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Sample article title"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"body"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Sample content of article"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>Pada kode diatas saya menambahkan method <code class="language-plaintext highlighter-rouge">initialize</code> agar proses inisialisasi atribut dilakukan di dalam kelas <em>serializer</em> sehingga jika atribut-nya banyak, proses tidak dibebankan kepada <em>controller</em>.</p>
+
+<p>Saya kira tulisan ini cukup sekian saja,</p>
+
+<p><em>Happy hacking ~</em></p>
+:ET

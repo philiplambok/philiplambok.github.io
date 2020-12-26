@@ -1,0 +1,59 @@
+I"²<p>Tulisan ini akan singkat, gw cuman mau share hasil eksperimen di <em>weekend</em> ini terkait testing.</p>
+
+<p>Eksperimennya itu adalah oprek paket <a href="https://github.com/grosser/parallel_tests">parallel_test</a>.</p>
+
+<p>Paket ini dibuat untuk membuat test (spec) di Ruby (Rails) bisa dijalankan secara parallel. Goalsnya adalah dapat membuat test jalannya jadi jauh lebih cepat.</p>
+
+<p>Untuk instalasinya sangat-sangatlah simple:</p>
+
+<p>Pertama tambahkan gem <code class="language-plaintext highlighter-rouge">parallel_tests</code> di <code class="language-plaintext highlighter-rouge">Gemfile</code>.</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">gem</span> <span class="s1">'parallel_tests'</span><span class="p">,</span> <span class="ss">group: </span><span class="p">[</span><span class="ss">:development</span><span class="p">,</span> <span class="ss">:test</span><span class="p">]</span>
+</code></pre></div></div>
+
+<p>Lalu edit <code class="language-plaintext highlighter-rouge">database.yml</code>, dengan memasukan <code class="language-plaintext highlighter-rouge">ENV['TEST_ENV_NUMBER']</code>.</p>
+
+<p>ENV ini nantinya digunakan sebagai jumlah thread atau proses yang ingin dibuat. Pada paket ini setiap proses akan dijalankan di database yang berbeda, maka jika anda define <code class="language-plaintext highlighter-rouge">ENV</code> dengan 8, maka database test anda nantinya juga ada 8. Logic ini dibuat sebagai solusi atas issue deadlock pada software database.</p>
+
+<div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">test</span><span class="pi">:</span>
+  <span class="na">database</span><span class="pi">:</span> <span class="s">yourproject_test&lt;%= ENV['TEST_ENV_NUMBER'] %&gt;</span>
+</code></pre></div></div>
+
+<p>Sekarang silahkan buat databasenya</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">RAILS_ENV</span><span class="o">=</span><span class="nb">test </span>bundle <span class="nb">exec </span>rake parallel:create
+</code></pre></div></div>
+
+<p>Lalu jalankan migrasinya:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">RAILS_ENV</span><span class="o">=</span><span class="nb">test </span>bundle <span class="nb">exec </span>rake parallel:migrate
+</code></pre></div></div>
+
+<p>Lalu seedsnya, (jika di test anda membutuhkan seeds):</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">RAILS_ENV</span><span class="o">=</span><span class="nb">test </span>bundle <span class="nb">exec </span>rake parallel:seed
+</code></pre></div></div>
+
+<p>Jika database sudah <em>complete</em>, maka sekarang tinggal jalankan testnya (di RSpec):</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">RAILS_ENV</span><span class="o">=</span><span class="nb">test </span>bundle <span class="nb">exec </span>rake parallel:spec
+</code></pre></div></div>
+
+<hr />
+
+<p>Dapat dilihat, dengan parallel_test <em>test runtime</em> jadi jauh lebih cepat. Pada projek eksperimen kira-kira hasilnya seperti ini:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$&gt; time bundle exec rspec
+196.55s user 24.45s system 35% cpu 10:30.98 total
+$&gt; time RAILS_ENV=test bundle exec rake parallel:spec
+302.62s user 56.55s system 144% cpu 4:08.47 total
+</code></pre></div></div>
+
+<p>Dengan 8 thread proses yang jalan dengan paralel, running time test dari 10 menitan jadi 4 menitan,</p>
+
+<p>Untuk paralel test ini sendiri sebenernya sudah ada di default Rails 6. Jika projek anda menggunakan mini-test dan Rails 6, bisa coba paralel test bawaan rails disini: https://edgeguides.rubyonrails.org/testing.html#parallel-testing.</p>
+
+<p>Namun sayangnya saat tulisan ini ditulis RSpec masih belum implementasi fitur tersebut, jadi jika anda menggunakan RSpec, mungkin bisa menggunakan gem <code class="language-plaintext highlighter-rouge">parallel_test</code>.</p>
+
+<p>Sekian saja tulisan kali ini, happy hacking~.</p>
+:ET

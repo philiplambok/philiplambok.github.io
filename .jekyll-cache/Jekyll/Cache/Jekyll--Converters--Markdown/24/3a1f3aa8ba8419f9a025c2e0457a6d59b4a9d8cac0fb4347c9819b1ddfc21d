@@ -1,0 +1,230 @@
+I"2R<p>Hi, Setelah sekian lama pensi akhirnya ada kesempatan untuk nulis lagi :)</p>
+
+<p>Pada tulisan kali ini, gw mau berbagi hasil eksperimen hari ini dalam mengoprek testing Vue.js di Nuxt Framework.</p>
+
+<p>Goal pada kali ini adalah setidaknya kita akan bahas:</p>
+<ul>
+  <li>Bagaimana cara testing component di Vue.js.</li>
+  <li>Bagaimana cara testing component yang di dalemnya ada component juga.</li>
+  <li>Bagaimana caranya testing component yang di dalemnya ada request api menggunakan axios.</li>
+</ul>
+
+<h4 id="goal-pertama-cara-testing-component-di-vuejs">Goal pertama: Cara testing component di Vue.js</h4>
+
+<p>Kita akan membuat component yang menampilkan list dari items yang dikirim melalui props.</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// test/components/list.spec.js</span>
+<span class="k">import</span> <span class="p">{</span> <span class="nx">mount</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">@vue/test-utils</span><span class="dl">'</span>
+<span class="k">import</span> <span class="nx">List</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">~/components/list.vue</span><span class="dl">'</span>
+
+<span class="nx">describe</span><span class="p">(</span><span class="dl">'</span><span class="s1">List component spec</span><span class="dl">'</span><span class="p">,</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="nx">test</span><span class="p">(</span><span class="dl">'</span><span class="s1">returns expected list</span><span class="dl">'</span><span class="p">,</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="kd">const</span> <span class="nx">wrapper</span> <span class="o">=</span> <span class="nx">mount</span><span class="p">(</span><span class="nx">List</span><span class="p">,</span> <span class="p">{</span>
+      <span class="na">propsData</span><span class="p">:</span> <span class="p">{</span>
+        <span class="na">items</span><span class="p">:</span> <span class="p">[</span>
+          <span class="dl">'</span><span class="s1">Username</span><span class="dl">'</span><span class="p">,</span>
+          <span class="dl">'</span><span class="s1">Emails</span><span class="dl">'</span>
+        <span class="p">]</span>
+      <span class="p">}</span>
+    <span class="p">})</span>
+    <span class="kd">const</span> <span class="nx">items</span> <span class="o">=</span> <span class="p">[</span><span class="dl">'</span><span class="s1">Username</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">Emails</span><span class="dl">'</span><span class="p">]</span>
+    <span class="nx">items</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="nx">item</span> <span class="o">=&gt;</span> <span class="p">{</span>
+      <span class="nx">expect</span><span class="p">(</span><span class="nx">wrapper</span><span class="p">.</span><span class="nx">text</span><span class="p">()).</span><span class="nx">toContain</span><span class="p">(</span><span class="nx">item</span><span class="p">)</span>
+    <span class="p">})</span>
+  <span class="p">})</span>
+<span class="p">})</span>
+</code></pre></div></div>
+
+<p>Test diatas akan error, sekarang kita buat kode testnya menjadi passed, dengan membuatkan componentnya sesuai kritiria yang diinginkan.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code># components/list.vue
+
+&lt;template&gt;
+  &lt;div&gt;
+    &lt;li v-for="(item, index) in items" :key="index"&gt;
+      show-item
+    &lt;/li&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+
+&lt;script&gt;
+export default {
+  name: 'List', 
+  props: {
+    items: {
+      type: Array,
+      required: true
+    }
+  }
+}
+&lt;/script&gt;
+</code></pre></div></div>
+
+<p>Maka testnya akan berhasil, goal pertama selesai :)</p>
+
+<h4 id="goal-kedua-bagaimana-cara-testing-component-yang-di-dalamnya-ada-componentnya-juga">Goal kedua: Bagaimana cara testing component yang di dalamnya ada componentnya juga.</h4>
+
+<p>Anda akan sering bertemu dengan kasus ini, karena secara <em>best practice</em> kita tidak ingin satu halaman hanya memiliki satu component. Karena pada tulisan ini kita menggunakan nuxt, maka kita ambil contohnya adalah component pada <code class="language-plaintext highlighter-rouge">/pages</code>.</p>
+
+<p>Pada file <code class="language-plaintext highlighter-rouge">/pages/index.vue</code> kita akan menggunakan componentnya sebelumnya yaitu <code class="language-plaintext highlighter-rouge">List</code>.</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="p">{</span> <span class="nx">mount</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">@vue/test-utils</span><span class="dl">'</span>
+<span class="k">import</span> <span class="nx">PagesIndex</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">~/pages/index.vue</span><span class="dl">'</span> 
+
+<span class="nx">describe</span><span class="p">(</span><span class="dl">'</span><span class="s1">Root page spec</span><span class="dl">'</span><span class="p">,</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="nx">test</span><span class="p">(</span><span class="dl">'</span><span class="s1">returns expected list items</span><span class="dl">'</span><span class="p">,</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="kd">const</span> <span class="nx">wrapper</span> <span class="o">=</span> <span class="nx">mount</span><span class="p">(</span><span class="nx">PagesIndex</span><span class="p">,</span> <span class="p">{</span>
+      <span class="nx">data</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="p">{</span>
+          <span class="na">lists</span><span class="p">:</span> <span class="p">[</span>
+            <span class="dl">'</span><span class="s1">Username</span><span class="dl">'</span><span class="p">,</span> 
+            <span class="dl">'</span><span class="s1">Email</span><span class="dl">'</span>
+          <span class="p">]</span>
+        <span class="p">}</span>
+      <span class="p">},</span>
+      <span class="na">stubs</span><span class="p">:</span> <span class="p">[</span><span class="dl">'</span><span class="s1">ListComponent</span><span class="dl">'</span><span class="p">]</span>
+    <span class="p">})</span>
+    <span class="kd">const</span> <span class="nx">lists</span> <span class="o">=</span> <span class="p">[</span><span class="dl">'</span><span class="s1">Username</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">Email</span><span class="dl">'</span><span class="p">]</span>
+    <span class="nx">lists</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="nx">listItem</span>  <span class="o">=&gt;</span> <span class="p">{</span>
+      <span class="nx">expect</span><span class="p">(</span><span class="nx">wrapper</span><span class="p">.</span><span class="nx">text</span><span class="p">()).</span><span class="nx">toContain</span><span class="p">(</span><span class="nx">listItem</span><span class="p">)</span>
+    <span class="p">})</span>
+  <span class="p">})</span>
+<span class="p">})</span>
+</code></pre></div></div>
+
+<p>Kode diatas akan failed sekarang kita buat passed dengan menulis kode produksinya:</p>
+
+<div class="language-vue highlighter-rouge"><div class="highlight"><pre class="highlight"><code># pages/index.vue
+
+<span class="nt">&lt;</span><span class="k">template</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;div&gt;</span>
+    <span class="nt">&lt;List</span> <span class="na">:items=</span><span class="s">"lists"</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;/div&gt;</span>
+<span class="nt">&lt;/</span><span class="k">template</span><span class="nt">&gt;</span>
+
+<span class="nt">&lt;</span><span class="k">script</span><span class="nt">&gt;</span>
+<span class="k">import</span> <span class="nx">List</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">~/components/list</span><span class="dl">'</span>
+<span class="k">export</span> <span class="k">default</span> <span class="p">{</span>
+  <span class="na">name</span><span class="p">:</span> <span class="dl">'</span><span class="s1">RootPage</span><span class="dl">'</span><span class="p">,</span>
+  <span class="nx">data</span><span class="p">(){</span>
+    <span class="k">return</span> <span class="p">{</span>
+      <span class="na">lists</span><span class="p">:</span> <span class="p">[]</span>
+    <span class="p">}</span>
+  <span class="p">},</span>
+  <span class="na">components</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nx">List</span>
+  <span class="p">},</span> 
+<span class="p">}</span>
+<span class="nt">&lt;/</span><span class="k">script</span><span class="nt">&gt;</span>
+</code></pre></div></div>
+
+<p>Oke, maka kode testnya menjadi passed. Maka, dengan ini goal kedua kita sudah tercapai.</p>
+
+<h4 id="goal-terakhir-bagaimana-caranya-testing-component-yang-di-dalemnya-ada-request-api-menggunakan-axios">Goal terakhir: Bagaimana caranya testing component yang di dalemnya ada request api menggunakan axios</h4>
+
+<p>Kali ini kita akan menggunakan axios. Sebuah paket yang cukup terkenal di lingkungan di javascript untuk request api.</p>
+
+<p>Untuk kasus ini saya akan membuat fitur yang simple saja, yaitu fetch data ketika user menekan tombol  “fetch employee” dan data yang diterima axios akan ditampilkan di dalam component. Kira-kira untuk test codenya bisa seperti ini:</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// test/pages/index.spec.js</span>
+<span class="k">import</span> <span class="p">{</span> <span class="nx">mount</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">@vue/test-utils</span><span class="dl">'</span>
+<span class="k">import</span> <span class="nx">PagesIndex</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">~/pages/index.vue</span><span class="dl">'</span> 
+<span class="k">import</span> <span class="nx">Vue</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">vue</span><span class="dl">'</span>
+
+<span class="nx">describe</span><span class="p">(</span><span class="dl">'</span><span class="s1">Root page spec</span><span class="dl">'</span><span class="p">,</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="c1">// ...</span>
+  <span class="nx">test</span><span class="p">(</span><span class="dl">'</span><span class="s1">returns employee name</span><span class="dl">'</span><span class="p">,</span> <span class="k">async</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="kd">const</span> <span class="nx">wrapper</span> <span class="o">=</span> <span class="nx">mount</span><span class="p">(</span><span class="nx">PagesIndex</span><span class="p">,</span> <span class="p">{</span>
+      <span class="na">stubs</span><span class="p">:</span> <span class="p">[</span><span class="dl">'</span><span class="s1">ListComponent</span><span class="dl">'</span><span class="p">],</span>
+    <span class="p">})</span>
+    <span class="kd">const</span> <span class="nx">fetchEmployeeButton</span> <span class="o">=</span> <span class="nx">wrapper</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="dl">'</span><span class="s1">#fetch-employee</span><span class="dl">'</span><span class="p">)</span>
+    <span class="nx">fetchEmployeeButton</span><span class="p">.</span><span class="nx">trigger</span><span class="p">(</span><span class="dl">'</span><span class="s1">click</span><span class="dl">'</span><span class="p">)</span>
+    <span class="k">await</span> <span class="nx">Vue</span><span class="p">.</span><span class="nx">nextTick</span><span class="p">()</span>
+    <span class="nx">expect</span><span class="p">(</span><span class="nx">wrapper</span><span class="p">.</span><span class="nx">text</span><span class="p">()).</span><span class="nx">toContain</span><span class="p">(</span><span class="dl">'</span><span class="s1">Employee name: Budi</span><span class="dl">'</span><span class="p">)</span>
+  <span class="p">})</span>
+<span class="p">})</span>
+</code></pre></div></div>
+
+<p>Dalam request api ini saya akan menggunakan plugin karena di kantor saya juga kebetulan menggunakan plugin untuk request apinya. Untuk kode produksi kira-kira seperti ini:</p>
+
+<div class="language-vue highlighter-rouge"><div class="highlight"><pre class="highlight"><code># pages/index.vue
+
+<span class="nt">&lt;</span><span class="k">template</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;div&gt;</span>
+    <span class="nt">&lt;List</span> <span class="na">:items=</span><span class="s">"lists"</span> <span class="nt">/&gt;</span>
+    <span class="nt">&lt;span</span> <span class="na">v-if=</span><span class="s">"employee !== null"</span><span class="nt">&gt;</span>Employee name: <span class="nt">&lt;/span&gt;</span>
+    <span class="nt">&lt;button</span> <span class="na">id=</span><span class="s">"fetch-employee"</span> <span class="err">@</span><span class="na">click.prevent=</span><span class="s">"fetchEmployee()"</span><span class="nt">&gt;</span>Fetch employee<span class="nt">&lt;/button&gt;</span>
+  <span class="nt">&lt;/div&gt;</span>
+<span class="nt">&lt;/</span><span class="k">template</span><span class="nt">&gt;</span>
+
+<span class="nt">&lt;</span><span class="k">script</span><span class="nt">&gt;</span>
+<span class="k">import</span> <span class="nx">List</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">~/components/list</span><span class="dl">'</span>
+<span class="k">export</span> <span class="k">default</span> <span class="p">{</span>
+  <span class="na">name</span><span class="p">:</span> <span class="dl">'</span><span class="s1">RootPage</span><span class="dl">'</span><span class="p">,</span>
+  <span class="nx">data</span><span class="p">(){</span>
+    <span class="k">return</span> <span class="p">{</span>
+      <span class="na">employee</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
+      <span class="na">lists</span><span class="p">:</span> <span class="p">[]</span>
+    <span class="p">}</span>
+  <span class="p">},</span>
+  <span class="na">methods</span><span class="p">:</span> <span class="p">{</span>
+    <span class="k">async</span> <span class="nx">fetchEmployee</span><span class="p">()</span> <span class="p">{</span>
+      <span class="kd">const</span> <span class="p">{</span> <span class="nx">data</span> <span class="p">}</span> <span class="o">=</span> <span class="k">await</span> <span class="k">this</span><span class="p">.</span><span class="nx">$employeeClient</span><span class="p">.</span><span class="nx">show</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">employee</span> <span class="o">=</span> <span class="nx">data</span><span class="p">.</span><span class="nx">data</span>
+    <span class="p">},</span>
+  <span class="p">},</span>
+  <span class="na">components</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nx">List</span>
+  <span class="p">},</span> 
+<span class="p">}</span>
+<span class="nt">&lt;/</span><span class="k">script</span><span class="nt">&gt;</span>
+</code></pre></div></div>
+
+<p>Tapi setelah kode dijalankan test kita masih failed. Namun memang itu expectednya, karena pada kode test kita belum melakukan mockingnya yaitu memalsukan return dari kode <code class="language-plaintext highlighter-rouge">this.$employeeClient.show(1)</code>.</p>
+
+<p>Sekarang kita lakukan mockingnya dengan merubah kode test kita:</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// test/pages/index.spec.js</span>
+<span class="k">import</span> <span class="p">{</span> <span class="nx">mount</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">@vue/test-utils</span><span class="dl">'</span>
+<span class="k">import</span> <span class="nx">PagesIndex</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">~/pages/index.vue</span><span class="dl">'</span> 
+<span class="k">import</span> <span class="nx">Vue</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">vue</span><span class="dl">'</span>
+<span class="k">import</span> <span class="nx">employeeClient</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">~/plugins/employeeClient</span><span class="dl">'</span>
+
+<span class="nx">describe</span><span class="p">(</span><span class="dl">'</span><span class="s1">Root page spec</span><span class="dl">'</span><span class="p">,</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="c1">// ....</span>
+  <span class="nx">test</span><span class="p">(</span><span class="dl">'</span><span class="s1">returns employee name</span><span class="dl">'</span><span class="p">,</span> <span class="k">async</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="kd">const</span> <span class="nx">wrapper</span> <span class="o">=</span> <span class="nx">mount</span><span class="p">(</span><span class="nx">PagesIndex</span><span class="p">,</span> <span class="p">{</span>
+      <span class="na">stubs</span><span class="p">:</span> <span class="p">[</span><span class="dl">'</span><span class="s1">ListComponent</span><span class="dl">'</span><span class="p">],</span>
+      <span class="na">use</span><span class="p">:</span> <span class="p">[</span><span class="nx">employeeClient</span><span class="p">],</span>
+      <span class="na">mocks</span><span class="p">:</span> <span class="p">{</span>
+        <span class="na">$employeeClient</span><span class="p">:</span> <span class="p">{</span>
+          <span class="na">show</span><span class="p">:</span> <span class="p">(</span><span class="nx">id</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="p">{</span>
+              <span class="na">data</span><span class="p">:</span> <span class="p">{</span>
+                <span class="na">data</span><span class="p">:</span> <span class="p">{</span>
+                  <span class="na">employee_name</span><span class="p">:</span> <span class="dl">'</span><span class="s1">Budi</span><span class="dl">'</span>
+                <span class="p">}</span>
+              <span class="p">}</span>
+            <span class="p">}</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">})</span>
+    <span class="kd">const</span> <span class="nx">fetchEmployeeButton</span> <span class="o">=</span> <span class="nx">wrapper</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="dl">'</span><span class="s1">#fetch-employee</span><span class="dl">'</span><span class="p">)</span>
+    <span class="nx">fetchEmployeeButton</span><span class="p">.</span><span class="nx">trigger</span><span class="p">(</span><span class="dl">'</span><span class="s1">click</span><span class="dl">'</span><span class="p">)</span>
+    <span class="k">await</span> <span class="nx">Vue</span><span class="p">.</span><span class="nx">nextTick</span><span class="p">()</span>
+    <span class="nx">expect</span><span class="p">(</span><span class="nx">wrapper</span><span class="p">.</span><span class="nx">text</span><span class="p">()).</span><span class="nx">toContain</span><span class="p">(</span><span class="dl">'</span><span class="s1">Employee name: Budi</span><span class="dl">'</span><span class="p">)</span>
+  <span class="p">})</span>
+<span class="p">})</span>
+</code></pre></div></div>
+
+<p>Sekarang jalankan kembali testnya, dan lihat hasilnya kode kita akan menjadi passed. Maka goal terakhir telah tercapai :)</p>
+
+<hr />
+
+<p>Terima kasih telah membaca tulisan sederhana ini, jika anda ingin melihat kode sumbernya dapat lihat <a href="https://github.com/sugar-for-pirate-king/nuxt-testing">disini</a>.</p>
+
+<p>Semoga tulisan ini dapat bermamfaat bagi pembaca skalian,</p>
+
+<p><em>Happy hacking~</em></p>
+:ET

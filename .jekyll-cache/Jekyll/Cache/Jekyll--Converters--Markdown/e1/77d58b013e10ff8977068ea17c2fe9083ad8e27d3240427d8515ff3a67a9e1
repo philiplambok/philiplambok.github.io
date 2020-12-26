@@ -1,0 +1,117 @@
+I"�(<p>Pada tulisan ini sebelumnya <a href="https://philiplambok.github.io/jquery20,/railsjs/2020/06/07/my-love-story-with-stimulus.html">My love story with stimulus</a> gw sudah mengenalkan cara penggunaan dan mamfaat menggunakan stimulus.</p>
+
+<p>Namun, problem yang gw contohnya di tulisan sebelumnya masih menggunakan trigger-trigger standard yang dihandle pada file html pada umumnya, seperti ketika klik something atau tekan enter atau submit form.</p>
+
+<p>Pada tulisan ini kita akan menggunakan trigger yang tidak dihandle pada file html. Kita akan membuat sebuah fitur realtime searching pada aplikasi yang sudah kita buat sebelumnya.</p>
+
+<p>Kasusnya:</p>
+
+<p>Misalnya kita punya 10 posts yang tampil semuanya pada sebuah halaman. Pada halaman tersebut kita memiliki sebuah field text dengan placeholder “Type something”, ketika kita menginput kata “Sample” tanpa menekan enter secara otomatis posts yang tadinya 10, menjadi 2.</p>
+
+<p>Kita akan menggunakan event trigger <em>keyup</em> pada kasus ini.</p>
+
+<p>Mari kita mulai.</p>
+
+<p>Kita masih menggunakan project yang sama dengan tulisan: <a href="https://philiplambok.github.io/jquery20,/railsjs/2020/06/07/my-love-story-with-stimulus.html">sebelumnya</a>.</p>
+
+<p>Silahkan buat halaman <code class="language-plaintext highlighter-rouge">posts/index.html.erb</code>:</p>
+
+<div class="language-erb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;div</span> <span class="na">data-controller=</span><span class="s">"search"</span><span class="nt">&gt;</span>
+  <span class="cp">&lt;%=</span> <span class="n">form_with</span><span class="p">(</span><span class="ss">url: </span><span class="n">posts_path</span><span class="p">,</span> <span class="ss">method: :get</span><span class="p">,</span> <span class="ss">data: </span><span class="p">{</span> <span class="ss">target: </span><span class="s1">'search.form'</span> <span class="p">},</span> <span class="ss">remote: </span><span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">form</span><span class="o">|</span> <span class="cp">%&gt;</span>
+    <span class="cp">&lt;%=</span> <span class="n">form</span><span class="p">.</span><span class="nf">text_field</span> <span class="ss">:query</span><span class="p">,</span> 
+                        <span class="ss">value: </span><span class="n">params</span><span class="p">[</span><span class="ss">:query</span><span class="p">],</span> 
+                        <span class="ss">placeholder: </span><span class="s1">'Type something'</span><span class="p">,</span>
+                        <span class="ss">class: </span><span class="s1">'form-control'</span><span class="p">,</span> 
+                        <span class="ss">data: </span><span class="p">{</span> <span class="ss">action: </span><span class="s1">'keyup-&gt;search#call'</span> <span class="p">}</span> <span class="cp">%&gt;</span>
+  <span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+
+<span class="nt">&lt;br&gt;</span>
+
+<span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"posts"</span><span class="nt">&gt;</span>
+  <span class="cp">&lt;%=</span> <span class="n">render</span> <span class="s1">'posts'</span><span class="p">,</span> <span class="ss">posts: </span><span class="vi">@posts</span> <span class="cp">%&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+</code></pre></div></div>
+
+<p>Pada partial view <code class="language-plaintext highlighter-rouge">posts/_posts.html.erb</code> kita buat begini:</p>
+
+<div class="language-erb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;%</span> <span class="k">if</span> <span class="vi">@posts</span><span class="p">.</span><span class="nf">any?</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;table</span> <span class="na">class=</span><span class="s">"table"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;tr&gt;</span>
+      <span class="nt">&lt;th&gt;</span>#<span class="nt">&lt;/th&gt;</span>
+      <span class="nt">&lt;th&gt;</span>Title<span class="nt">&lt;/th&gt;</span>
+    <span class="nt">&lt;/tr&gt;</span>
+
+    <span class="cp">&lt;%</span> <span class="n">posts</span><span class="p">.</span><span class="nf">each</span><span class="p">.</span><span class="nf">with_index</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">post</span><span class="p">,</span> <span class="n">index</span><span class="o">|</span> <span class="cp">%&gt;</span>
+      <span class="nt">&lt;tr&gt;</span>
+        <span class="nt">&lt;td&gt;</span><span class="cp">&lt;%=</span> <span class="n">index</span> <span class="cp">%&gt;</span><span class="nt">&lt;/td&gt;</span>
+        <span class="nt">&lt;td&gt;</span><span class="cp">&lt;%=</span> <span class="n">post</span><span class="p">.</span><span class="nf">title</span> <span class="cp">%&gt;</span><span class="nt">&lt;/td&gt;</span>
+      <span class="nt">&lt;/tr&gt;</span>
+    <span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;/table&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">else</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;p&gt;</span>No posts provided.<span class="nt">&lt;/p&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+</code></pre></div></div>
+
+<p>Pada views kita kira-kira menjadi seperti ini:</p>
+
+<p><img src="/assets/posts_index.png" alt="Post index view" /></p>
+
+<p>Sekarang kita buat file stimulus controllernya:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">import</span> <span class="no">Rails</span> <span class="n">from</span> <span class="s1">'@rails/ujs'</span><span class="p">;</span>
+<span class="n">import</span> <span class="p">{</span> <span class="no">Controller</span> <span class="p">}</span> <span class="n">from</span> <span class="s1">'stimulus'</span>
+
+<span class="n">export</span> <span class="n">default</span> <span class="k">class</span> <span class="nc">SearchController</span> <span class="n">extends</span> <span class="no">Controller</span> <span class="p">{</span>
+  <span class="n">static</span> <span class="n">targets</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"form"</span><span class="p">]</span>
+
+  <span class="n">call</span><span class="p">(){</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">fire</span><span class="p">(</span><span class="n">this</span><span class="p">.</span><span class="nf">formTarget</span><span class="p">,</span> <span class="s1">'submit'</span><span class="p">)</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Yups, cukup ini aja.</p>
+
+<p>Stimulus controller kita hanya memiliki satu public method <code class="language-plaintext highlighter-rouge">call</code>, method ini dipanggil ketika event <code class="language-plaintext highlighter-rouge">keyup</code> ter-trigger. Dan isi method <code class="language-plaintext highlighter-rouge">call</code> kita akan mentrigger related <em>remote form</em> dari field kita.</p>
+
+<p>Dan pada controllernya kita buat seperti ini:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># frozen_string_literal: true</span>
+
+<span class="k">class</span> <span class="nc">PostsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">index</span>
+    <span class="vi">@posts</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">all</span>
+    <span class="vi">@posts</span> <span class="o">=</span> <span class="vi">@posts</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s1">'title LIKE ?'</span><span class="p">,</span> <span class="s2">"%</span><span class="si">#{</span><span class="n">params</span><span class="p">[</span><span class="ss">:query</span><span class="p">]</span><span class="si">}</span><span class="s2">%"</span><span class="p">)</span> <span class="k">if</span> <span class="n">params</span><span class="p">[</span><span class="ss">:query</span><span class="p">].</span><span class="nf">present?</span>
+    <span class="n">respond_to</span> <span class="k">do</span> <span class="o">|</span><span class="nb">format</span><span class="o">|</span>
+      <span class="nb">format</span><span class="p">.</span><span class="nf">html</span> <span class="p">{</span> <span class="n">render</span> <span class="ss">:index</span> <span class="p">}</span>
+      <span class="nb">format</span><span class="p">.</span><span class="nf">js</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="c1"># ...</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Kita akan filter <code class="language-plaintext highlighter-rouge">@posts</code>-nya ketika params di kirim oleh remote form.</p>
+
+<p>Dan pada partial <code class="language-plaintext highlighter-rouge">posts/index.js.erb</code>-nya, kita buat gini:</p>
+
+<div class="language-erb highlighter-rouge"><div class="highlight"><pre class="highlight"><code>document.getElementById('posts').innerHTML = `<span class="cp">&lt;%=</span> <span class="n">render</span> <span class="s1">'posts/posts'</span><span class="p">,</span> <span class="ss">posts: </span><span class="vi">@posts</span>  <span class="cp">%&gt;</span>`
+</code></pre></div></div>
+
+<p>Sekarang hasilnya akan menjadi begini:</p>
+
+<p><img src="/assets/realtime-search.gif" alt="Realtime search" /></p>
+
+<hr />
+
+<p>Dengan stimulus javascript kita menjadi sangat milimalis sekali. Stimulus controllernya juga lebih general dan dapat digunakan di form atau halaman-halaman lain.</p>
+
+<p>Untuk kodenya bisa diakses di project yang sama: <a href="https://github.com/sugar-for-pirate-king/stimulus-experiment">https://github.com/sugar-for-pirate-king/stimulus-experiment</a></p>
+
+<p>Segini saja dulu untuk tulisan ini yaa</p>
+
+<p>Thank you and happy hacking!</p>
+:ET

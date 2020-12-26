@@ -1,0 +1,330 @@
+I"qm<p>Saat tulisan ini ditulis sebenernya saya masih bingung dengan perbedaan antara <em>stub</em>, <em>mock</em> dan <em>fake</em>.</p>
+
+<p>Namun untuk terminologi-terminologi ini saya ambil simple saja.</p>
+
+<p>Saya menyebut itu <em>stub</em> ketika anda mendeklarasikan output. Misalnya pada <a href="https://github.com/bblimke/webmock">webmock</a> anda mendefinisikan output pada <em>enpoint</em> tertentu dan output yang anda definisikan adalah apa yang di test.</p>
+
+<p>Saya ambil konsep ini dari <a href="https://github.com/bblimke/webmock">webmock</a>. Kenapa pemrogram melakukan ini? mereka melakukan ini agar test mereka tetap <em>independent</em>. Tanpa koneksi online test akan tetap jalan sempurna.</p>
+
+<p>Lalu dengan <em>mock</em>. Saya menyebut itu sebagai <em>mock</em> ketika anda ingin melakukan <em>break dependencies</em> dengan kelas atau objek. Pada pemrograman berorientasi kelas jarang sekali berdiri sendiri, biasanya untuk memproses sesuatu kelas akan berelasi satu dengan lainnya.</p>
+
+<p>Namun terkadang, kita ingin mengetes suatu kelas secara terisolasi. Karena akan mendatangkan banyak mamfaatnya, seperti kode uji semakin cepat dan mungkin yang paling sering adalah: mengadakan semua dependensi yang dibutuhkan kelas yang ingin kita uji tak <em>seelok</em> yang dibayangkan.</p>
+
+<p>Pada tulisan ini saya ingin berbagi bagaimana saya menggunakan <em>mock test</em> ketika membuat fitur seperti <em>import</em> data dari file <em>excel</em>.</p>
+
+<p>Fitur <em>import</em> excel adalah fitur yang hampir ada disetiap projek yang saya kerjakan, baik untuk projek untuk perusahaan yang baru, atau untuk perusahaan yang sudah jalan. Karena fitur input lewat form untuk data yang banyak dapat membuat tangan admin menjadi lelah.</p>
+
+<p>Fitur <em>import</em> yang ingin kita bahas disini sangatlah simple, yaitu fitur <em>import</em> untuk membuat data user yang kolomnya hanyalah dua yaitu: <em>username</em>, <em>age</em>.</p>
+
+<p>Baik, mari kita mulai.</p>
+
+<h4 id="langkah-pertama-install-dependencies">Langkah pertama: install dependencies</h4>
+
+<p>Pada projek eksperimen ini saya menggunakan <code class="language-plaintext highlighter-rouge">rspec-rails</code> sebagai <em>test framework</em> dan <a href="https://github.com/roo-rb/roo"><em>roo</em></a> sebagai library pengimportnya.</p>
+
+<p>Silahkan tambahkan kode ini di <code class="language-plaintext highlighter-rouge">Gemfile</code>:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">gem</span> <span class="s1">'roo'</span><span class="p">,</span> <span class="s1">'~&gt; 2.8.0'</span>
+
+<span class="n">group</span> <span class="ss">:development</span><span class="p">,</span> <span class="ss">:test</span> <span class="k">do</span>
+  <span class="c1"># Call 'byebug' anywhere in the code to stop execution and get a debugger console</span>
+  <span class="n">gem</span> <span class="s1">'byebug'</span><span class="p">,</span> <span class="ss">platforms: </span><span class="sx">%i[mri mingw x64_mingw]</span>
+  <span class="n">gem</span> <span class="s1">'capybara'</span>
+  <span class="n">gem</span> <span class="s1">'pry-rails'</span>
+  <span class="n">gem</span> <span class="s1">'rspec-rails'</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Lalu install rspec dengan perintah <code class="language-plaintext highlighter-rouge">bundle exec rails rspec:install</code>.</p>
+
+<h4 id="langkah-kedua-membuat-system-test-nya">Langkah kedua: membuat system test-nya.</h4>
+
+<p>Karena kita akan menggunakan paradigma <em>test-driven development</em>, maka kita menulis kode testnya terlebih dahulu sebelum kode produksi.</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># frozen_string_literal: true</span>
+
+<span class="nb">require</span> <span class="s1">'rails_helper'</span>
+
+<span class="no">RSpec</span><span class="p">.</span><span class="nf">describe</span> <span class="s1">'Import Users Spec'</span><span class="p">,</span> <span class="ss">type: :system</span> <span class="k">do</span>
+  <span class="n">before</span> <span class="k">do</span>
+    <span class="n">driven_by</span> <span class="ss">:rack_test</span>
+  <span class="k">end</span>
+
+  <span class="n">context</span> <span class="s1">'with valid params'</span> <span class="k">do</span>
+    <span class="n">it</span> <span class="s1">'returns success message'</span> <span class="k">do</span>
+      <span class="n">visit</span> <span class="n">new_employees_import_path</span>
+      <span class="n">file</span> <span class="o">=</span> <span class="no">Rails</span><span class="p">.</span><span class="nf">root</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s1">'spec'</span><span class="p">,</span> <span class="s1">'fixtures'</span><span class="p">,</span> <span class="s1">'files'</span><span class="p">,</span> <span class="s1">'users-all-valid.xlsx'</span><span class="p">)</span>
+      <span class="n">attach_file</span> <span class="ss">:employee_import_form_file</span><span class="p">,</span> <span class="n">file</span>
+      <span class="n">click_on</span> <span class="s1">'Submit'</span>
+      <span class="n">expect</span><span class="p">(</span><span class="n">page</span><span class="p">).</span><span class="nf">to</span> <span class="n">have_content</span> <span class="s1">'3 employees has been created'</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Kode test error sesuai ekspektasi kita, <code class="language-plaintext highlighter-rouge">new_empoyees_import_path</code> dibaca sebagai <code class="language-plaintext highlighter-rouge">undefined variable</code>.</p>
+
+<h4 id="langkah-ketiga-membuat-kode-produksi-untuk-membuat-kode-testnya-sukses">Langkah ketiga: membuat kode produksi untuk membuat kode testnya sukses</h4>
+
+<p>Sekarang, mari kita membuat kode produksinya untuk membuat kode testnya <em>success</em>.</p>
+
+<p>Pertama, register routes-nya terlebih dahulu:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># frozen_string_literal: true</span>
+
+<span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">scope</span> <span class="ss">:employees</span><span class="p">,</span> <span class="ss">module: :employees</span><span class="p">,</span> <span class="ss">as: :employees</span> <span class="k">do</span>
+    <span class="n">resources</span> <span class="ss">:imports</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Kedua, buat file controller-nya:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">module</span> <span class="nn">Employees</span>
+  <span class="k">class</span> <span class="nc">ImportsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+    <span class="k">def</span> <span class="nf">new</span>
+      <span class="vi">@form</span> <span class="o">=</span> <span class="no">EmployeeImportForm</span><span class="p">.</span><span class="nf">new</span>
+    <span class="k">end</span>
+
+     <span class="k">def</span> <span class="nf">create</span>
+      <span class="n">form</span> <span class="o">=</span> <span class="no">EmployeeImportForm</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">form_params</span><span class="p">)</span>
+      <span class="n">form</span><span class="p">.</span><span class="nf">save</span>
+      <span class="n">flash</span><span class="p">[</span><span class="ss">:success</span><span class="p">]</span> <span class="o">=</span> <span class="n">form</span><span class="p">.</span><span class="nf">success_message</span>
+      <span class="n">redirect_to</span> <span class="n">new_employees_import_path</span>
+    <span class="k">end</span>
+
+     <span class="kp">private</span>
+
+     <span class="k">def</span> <span class="nf">form_params</span>
+      <span class="n">params</span><span class="p">.</span><span class="nf">require</span><span class="p">(</span><span class="ss">:employee_import_form</span><span class="p">).</span><span class="nf">permit</span><span class="p">(</span><span class="ss">:file</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Kita akan menggunakan <em>form object</em> untuk fitur seperti ini. Kenapa <em>form object</em>? saya biasanya menggunakan <em>form object</em> bukan untuk form yang terdiri dari dua model atau lebih saja, namun untuk form yang tidak memiliki table-nya.</p>
+
+<p>Maka, ketiga kita buat <em>form object</em>-nya:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># frozen_string_literal: true</span>
+
+<span class="k">class</span> <span class="nc">EmployeeImportForm</span>
+  <span class="kp">include</span> <span class="no">ActiveModel</span><span class="o">::</span><span class="no">Model</span>
+  <span class="kp">include</span> <span class="no">ActiveModel</span><span class="o">::</span><span class="no">Attributes</span>
+
+  <span class="nb">attr_reader</span> <span class="ss">:success_message</span>
+
+  <span class="n">attribute</span> <span class="ss">:file</span><span class="p">,</span> <span class="ss">default: </span><span class="kp">nil</span>
+
+  <span class="k">def</span> <span class="nf">save</span>
+    <span class="vi">@success_message</span> <span class="o">=</span> <span class="s1">'3 employees has been created'</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Saya juga menggunakan <code class="language-plaintext highlighter-rouge">ActiveModel::Attributes</code> untuk membuat variable input yang bisa memiliki fitur <em>default value</em>, <em>setting type</em> dan sebagainya.</p>
+
+<p>Pada object ini saya awalnya tidak pusing untuk bagaimana bekerja dengan import-nya dulu, tapi saya buat <em>fake implementation</em> untuk melihat kode test kita sukses.</p>
+
+<p>Lalu jalankan testnya kembali.</p>
+
+<p>Dan testnya sukses.</p>
+
+<p>Setelah <em>fake implementation</em>, sekarang kita sudah cukup bisa berkreasi untuk <em>real implementationnya</em>.</p>
+
+<p>Untuk kodenya kira-kira bisa kita buat menjadi seperti ini:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># frozen_string_literal: true</span>
+
+<span class="k">class</span> <span class="nc">EmployeeImportForm</span>
+  <span class="kp">include</span> <span class="no">ActiveModel</span><span class="o">::</span><span class="no">Model</span>
+  <span class="kp">include</span> <span class="no">ActiveModel</span><span class="o">::</span><span class="no">Attributes</span>
+
+  <span class="nb">attr_reader</span> <span class="ss">:success_message</span>
+
+  <span class="n">attribute</span> <span class="ss">:file</span><span class="p">,</span> <span class="ss">default: </span><span class="kp">nil</span>
+
+  <span class="k">def</span> <span class="nf">save</span>
+    <span class="n">total_created</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">xlsx</span> <span class="o">=</span> <span class="no">Roo</span><span class="o">::</span><span class="no">Spreadsheet</span><span class="p">.</span><span class="nf">open</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+    <span class="n">xlsx</span><span class="p">.</span><span class="nf">parse</span><span class="p">(</span><span class="ss">headers: </span><span class="kp">true</span><span class="p">).</span><span class="nf">each_with_index</span> <span class="k">do</span> <span class="o">|</span><span class="n">row</span><span class="p">,</span> <span class="n">index</span><span class="o">|</span>
+      <span class="k">next</span> <span class="k">if</span> <span class="n">index</span><span class="p">.</span><span class="nf">eql?</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+      <span class="no">User</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">username: </span><span class="n">row</span><span class="p">[</span><span class="s1">'username'</span><span class="p">],</span> <span class="ss">age: </span><span class="n">row</span><span class="p">[</span><span class="s1">'age'</span><span class="p">])</span>
+      <span class="n">total_created</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">end</span>
+    <span class="vi">@success_message</span> <span class="o">=</span> <span class="s2">"</span><span class="si">#{</span><span class="n">total_created</span><span class="si">}</span><span class="s2"> employees has been created"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Lalu testnya kita jalankan kembali.</p>
+
+<p>Dan testnya masih sukses.</p>
+
+<h4 id="langkah-terakhir-improve-kode-testnya">Langkah terakhir: improve kode testnya</h4>
+
+<p>Saat ini kita masih mengetest pesan errornya saja, namun untuk apakah recordnya sudah tersimpan di database atau malah tidak tersimpan kita masih belum yakin.</p>
+
+<p>Oke, untuk itu kita coba improve kode test kita yang sebelumnya untuk mengecek database.</p>
+
+<p>Kira-kira menjadi seperti ini:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># frozen_string_literal: true</span>
+
+<span class="nb">require</span> <span class="s1">'rails_helper'</span>
+
+<span class="no">RSpec</span><span class="p">.</span><span class="nf">describe</span> <span class="s1">'Import Users Spec'</span><span class="p">,</span> <span class="ss">type: :system</span> <span class="k">do</span>
+  <span class="n">before</span> <span class="k">do</span>
+    <span class="n">driven_by</span> <span class="ss">:rack_test</span>
+  <span class="k">end</span>
+
+  <span class="n">context</span> <span class="s1">'with valid params'</span> <span class="k">do</span>
+    <span class="n">it</span> <span class="s1">'returns success message'</span> <span class="k">do</span>
+      <span class="n">visit</span> <span class="n">new_employees_import_path</span>
+      <span class="n">file</span> <span class="o">=</span> <span class="no">Rails</span><span class="p">.</span><span class="nf">root</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s1">'spec'</span><span class="p">,</span> <span class="s1">'fixtures'</span><span class="p">,</span> <span class="s1">'files'</span><span class="p">,</span> <span class="s1">'users-all-valid.xlsx'</span><span class="p">)</span>
+      <span class="n">attach_file</span> <span class="ss">:employee_import_form_file</span><span class="p">,</span> <span class="n">file</span>
+      <span class="n">click_on</span> <span class="s1">'Submit'</span>
+      <span class="n">expect</span><span class="p">(</span><span class="n">page</span><span class="p">).</span><span class="nf">to</span> <span class="n">have_content</span> <span class="s1">'3 employees has been created'</span>
+      <span class="n">expect</span><span class="p">(</span><span class="no">User</span><span class="p">.</span><span class="nf">all</span><span class="p">.</span><span class="nf">pluck</span><span class="p">(</span><span class="ss">:username</span><span class="p">,</span> <span class="ss">:age</span><span class="p">)).</span><span class="nf">to</span> <span class="kp">include</span><span class="p">(</span>
+        <span class="p">[</span><span class="s1">'pquest'</span><span class="p">,</span> <span class="mi">23</span><span class="p">],</span> <span class="p">[</span><span class="s1">'larapel'</span><span class="p">,</span> <span class="mi">44</span><span class="p">],</span> <span class="p">[</span><span class="s1">'kimono'</span><span class="p">,</span> <span class="mi">31</span><span class="p">]</span>
+      <span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Oke, dan testnya masih sukses.</p>
+
+<p>Namun, bagaimana menurut anda kode test yang diatas?</p>
+
+<p>Saya biasanya tidak melakukan hal tersebut.</p>
+
+<p><em>System spec</em> biasanya saya buat hanya untuk menguji user interfacenya saja seperti bagaimana pengguna menginput data melalui form dan bagaimana <em>flash message</em> yang ditampikan ke user sebagai outputnya.</p>
+
+<p>Sedangkan untuk <em>low level</em> seperti <em>query</em> database saya tidak uji di <em>system spec</em>, melainkan saya mengujinya di <em>unit spec</em>, seperti model spec, controller spec, forms spec, service spec, dll.</p>
+
+<p>Pada kasus ini, yaitu form spec: <code class="language-plaintext highlighter-rouge">employee_import_form_spec.rb</code>.</p>
+
+<p>Sekarang mari kita biarkan system spec seperti yang awal kita buat, dan membuat form spec baru: <code class="language-plaintext highlighter-rouge">employee_import_form_spec</code>.</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># frozen_string_literal: true</span>
+
+<span class="nb">require</span> <span class="s1">'rails_helper'</span>
+
+<span class="no">RSpec</span><span class="p">.</span><span class="nf">describe</span> <span class="no">EmployeeImportForm</span> <span class="k">do</span>
+  <span class="n">context</span> <span class="s1">'with valid params'</span> <span class="k">do</span>
+    <span class="n">it</span> <span class="s1">'returns success message'</span> <span class="k">do</span>
+      <span class="n">file_path</span> <span class="o">=</span> <span class="no">Rails</span><span class="p">.</span><span class="nf">root</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span>
+        <span class="s1">'spec'</span><span class="p">,</span> <span class="s1">'fixtures'</span><span class="p">,</span> <span class="s1">'files'</span><span class="p">,</span> <span class="s1">'users-all-valid.xlsx'</span>
+      <span class="p">)</span>
+      <span class="n">form</span> <span class="o">=</span> <span class="no">EmployeeImportForm</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">file: </span><span class="n">file_path</span><span class="p">)</span>
+      <span class="n">form</span><span class="p">.</span><span class="nf">save</span>
+      <span class="n">expect</span><span class="p">(</span><span class="n">form</span><span class="p">.</span><span class="nf">success_message</span><span class="p">).</span><span class="nf">to</span> <span class="n">eq</span> <span class="s1">'3 employees has been created'</span>
+      <span class="n">expect</span><span class="p">(</span><span class="no">User</span><span class="p">.</span><span class="nf">all</span><span class="p">.</span><span class="nf">pluck</span><span class="p">(</span><span class="ss">:username</span><span class="p">,</span> <span class="ss">:age</span><span class="p">)).</span><span class="nf">to</span> <span class="kp">include</span><span class="p">(</span>
+        <span class="p">[</span><span class="s1">'pquest'</span><span class="p">,</span> <span class="mi">23</span><span class="p">],</span> <span class="p">[</span><span class="s1">'larapel'</span><span class="p">,</span> <span class="mi">44</span><span class="p">],</span> <span class="p">[</span><span class="s1">'kimono'</span><span class="p">,</span> <span class="mi">31</span><span class="p">]</span>
+      <span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Kode testnya menghasilkan pesan error:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> 1<span class="o">)</span> EmployeeImportForm with valid params returns success mes
+sage
+     Failure/Error: xlsx <span class="o">=</span> Roo::Spreadsheet.open<span class="o">(</span>file<span class="o">)</span>
+
+     NoMethodError:
+       undefined method <span class="sb">`</span><span class="o">=</span>~<span class="s1">' for #&lt;Pathname:0x00005588a608e420&gt;
+     # ./app/forms/employee_import_form.rb:13:in `save'</span>
+     <span class="c"># ./spec/forms/employee_import_form_spec.rb:13:in `block (3 levels) in &lt;top (required)&gt;'</span>
+
+Finished <span class="k">in </span>1.44 seconds <span class="o">(</span>files took 1.13 seconds to load<span class="o">)</span>
+3 examples, 1 failure, 1 pending
+
+Failed examples:
+
+rspec ./spec/forms/employee_import_form_spec.rb:7 <span class="c"># EmployeeImportForm with valid params returns success message</span>
+</code></pre></div></div>
+
+<p>Ufff…</p>
+
+<p>Oke, sekarang waktunya kita mengimplementasikan mock object.</p>
+
+<p>Sebelum kita mengimplementasikan mock object, kita lihat dulu kode implementasi dari kode <code class="language-plaintext highlighter-rouge">Roo::Spreadsheet.open(file)</code>.</p>
+
+<p>Saya buka source-code-nya dan hasilnya:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">require</span> <span class="s1">'uri'</span>
+
+<span class="k">module</span> <span class="nn">Roo</span>
+  <span class="k">class</span> <span class="nc">Spreadsheet</span>
+    <span class="k">class</span> <span class="o">&lt;&lt;</span> <span class="nb">self</span>
+      <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">options</span> <span class="o">=</span> <span class="p">{})</span>
+        <span class="n">path</span>      <span class="o">=</span> <span class="n">path</span><span class="p">.</span><span class="nf">respond_to?</span><span class="p">(</span><span class="ss">:path</span><span class="p">)</span> <span class="p">?</span> <span class="n">path</span><span class="p">.</span><span class="nf">path</span> <span class="p">:</span> <span class="n">path</span>
+        <span class="n">extension</span> <span class="o">=</span> <span class="n">extension_for</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+
+        <span class="k">begin</span>
+          <span class="no">Roo</span><span class="o">::</span><span class="no">CLASS_FOR_EXTENSION</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="n">extension</span><span class="p">).</span><span class="nf">new</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+        <span class="k">rescue</span> <span class="no">KeyError</span>
+          <span class="k">raise</span> <span class="no">ArgumentError</span><span class="p">,</span>
+                <span class="s2">"Can't detect the type of </span><span class="si">#{</span><span class="n">path</span><span class="si">}</span><span class="s2"> - please use the :extension option to declare its type."</span>
+        <span class="k">end</span>
+      <span class="k">end</span>
+
+      <span class="k">def</span> <span class="nf">extension_for</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Hmnn, sepertinya <em>class method</em> dari <code class="language-plaintext highlighter-rouge">open</code> mengekpektasikan objek yang mereka terima memiliki sebuah method <code class="language-plaintext highlighter-rouge">path</code>.</p>
+
+<p>Oke, waktunya oprek kode test kita kembali dan saya membuatnya menjadi seperti ini:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># frozen_string_literal: true</span>
+
+<span class="nb">require</span> <span class="s1">'rails_helper'</span>
+
+<span class="no">RSpec</span><span class="p">.</span><span class="nf">describe</span> <span class="no">EmployeeImportForm</span> <span class="k">do</span>
+  <span class="n">context</span> <span class="s1">'with valid params'</span> <span class="k">do</span>
+    <span class="n">it</span> <span class="s1">'returns success message'</span> <span class="k">do</span>
+      <span class="n">file_path</span> <span class="o">=</span> <span class="no">Rails</span><span class="p">.</span><span class="nf">root</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span>
+        <span class="s1">'spec'</span><span class="p">,</span> <span class="s1">'fixtures'</span><span class="p">,</span> <span class="s1">'files'</span><span class="p">,</span> <span class="s1">'users-all-valid.xlsx'</span>
+      <span class="p">)</span>
+      <span class="n">mock_excel</span> <span class="o">=</span> <span class="no">MockExcelFile</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+      <span class="n">form</span> <span class="o">=</span> <span class="no">EmployeeImportForm</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">file: </span><span class="n">mock_excel</span><span class="p">)</span>
+      <span class="n">form</span><span class="p">.</span><span class="nf">save</span>
+      <span class="n">expect</span><span class="p">(</span><span class="n">form</span><span class="p">.</span><span class="nf">success_message</span><span class="p">).</span><span class="nf">to</span> <span class="n">eq</span> <span class="s1">'3 employees has been created'</span>
+      <span class="n">expect</span><span class="p">(</span><span class="no">User</span><span class="p">.</span><span class="nf">all</span><span class="p">.</span><span class="nf">pluck</span><span class="p">(</span><span class="ss">:username</span><span class="p">,</span> <span class="ss">:age</span><span class="p">)).</span><span class="nf">to</span> <span class="kp">include</span><span class="p">(</span>
+        <span class="p">[</span><span class="s1">'pquest'</span><span class="p">,</span> <span class="mi">23</span><span class="p">],</span> <span class="p">[</span><span class="s1">'larapel'</span><span class="p">,</span> <span class="mi">44</span><span class="p">],</span> <span class="p">[</span><span class="s1">'kimono'</span><span class="p">,</span> <span class="mi">31</span><span class="p">]</span>
+      <span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">class</span> <span class="nc">MockExcelFile</span>
+    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+      <span class="vi">@path</span> <span class="o">=</span> <span class="n">path</span>
+    <span class="k">end</span>
+
+    <span class="k">def</span> <span class="nf">path</span>
+      <span class="vi">@path</span><span class="p">.</span><span class="nf">to_s</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Dan kode test-nya menjadi <em>success</em>.</p>
+
+<p>:)</p>
+
+<p>Sekarang ketika <em>business code</em> dari import menjadi kompleks kita bisa bebankan untuk cek query-query database-nya di form spec dan bukan di fitur system spec.</p>
+
+<p>Untuk tulisan kali ini saya kira sudah cukup, semoga dapat membantu para pembaca skalian.</p>
+
+<p>Terima kasih.</p>
+:ET

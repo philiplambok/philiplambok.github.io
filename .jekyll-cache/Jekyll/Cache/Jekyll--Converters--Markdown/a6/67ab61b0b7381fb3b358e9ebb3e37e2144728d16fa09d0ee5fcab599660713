@@ -1,0 +1,261 @@
+I"¿Q<p>Kebetulan hari ini saya baru saja melakukan migrasi teknologi javascript pada proyek saya yang menggunakan vue.js.</p>
+
+<p>Sebelumnya saya menggunakan gem <a href="https://github.com/adambutler/vuejs-rails">vuejs-rails</a> dan terdapat kendala pada testnya, yaitu ketika saya menggunakan fitur <em>component</em> pada vue.js, kode test saya tidak bisa membaca isi dalam dari <em>component</em> yang bersangkutan.</p>
+
+<p>Maka daripada itu saya melakukan migrasi untuk menggunakan gem <a href="https://github.com/rails/webpacker">webpacker</a>, webpacker adalah teknologi baru di rails untuk bekerja pada moderen javascript. Webpacker ini juga rencananya akan dimuat secara default menggantikan asset pipeline pada Rails 6 yang akan di rilis 30 April nanti.</p>
+
+<p>Maka sekarang mungkin waktu yang tepat untuk menggunakan ini legacy sistem anda.</p>
+
+<p>Tulisan ini akan membahas langkah-langkah bagaimana menggunakan webpacker(vue) pada legacy sistem, namun bisa juga pada sistem yang baru.</p>
+
+<h4 id="langkah-pertama-menghapus-turbolinks">Langkah Pertama: Menghapus Turbolinks</h4>
+
+<p>Langkah pertama adalah menghapus penggunaan <em>turbolinks</em>.</p>
+
+<p>Turbolink adalah sebuah paket yang dibuat oleh Basecamp yang memfasilitasi teknologi PWA pada website anda. Namun, nyatanya paket ini dapat membuat kompleks kode anda dan pengalaman saya banyak error-error yang terjadi yang mungkin sulit untuk ditangani, karena masalah low-level dari paket ini.</p>
+
+<p>Bagi saya javascript ini sudah cukup kompleks, dan penggunaan turbolinks dapat membuat kodenya menjadi makin kompleks lagi, sehingga menurut saya penggunaan turbolinks ini tidak terlalu relevan.</p>
+
+<p>Cara menghapus turbolink, langkah-langkahnya adalah:</p>
+
+<ol>
+  <li>
+    <p>Menghapus gem <code class="language-plaintext highlighter-rouge">turbolinks</code> pada <code class="language-plaintext highlighter-rouge">Gemfile</code> anda:</p>
+
+    <pre><code class="language-Gemfile"># Turbolinks makes navigating your web application faster. Read more: https://github.com/turbolinks/turbolinks
+gem 'turbolinks', '~&gt; 5'
+# Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
+gem 'jbuilder', '~&gt; 2.5'
+# Use Redis adapter to run Action Cable in production
+# gem 'redis', '~&gt; 4.0'
+</code></pre>
+
+    <p>Jika anda menggunakan masih menggunakan <code class="language-plaintext highlighter-rouge">coffee-rails</code> sebaiknya juga dihapus saja, lebih baik gunakan <code class="language-plaintext highlighter-rouge">es6</code>.</p>
+  </li>
+  <li>Jalankan perintah <code class="language-plaintext highlighter-rouge">$&gt; bundle</code></li>
+  <li>
+    <p>Lalu hapus <code class="language-plaintext highlighter-rouge">require turbolinks</code> pada <code class="language-plaintext highlighter-rouge">application.js</code> anda.</p>
+
+    <div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">//= require rails-ujs</span>
+<span class="c1">//= require activestorage</span>
+<span class="c1">//= require turbolinks</span>
+<span class="c1">//= require_tree .</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>Setelah itu pada file <code class="language-plaintext highlighter-rouge">application.html.erb</code> hilangkan turbolinks pada <code class="language-plaintext highlighter-rouge">javscript</code></p>
+
+    <div class="language-erb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">&lt;!-- Ganti --&gt;</span>
+<span class="cp">&lt;%=</span> <span class="n">javascript_include_tag</span> <span class="s1">'application'</span><span class="p">,</span> <span class="s1">'data-turbolinks-track'</span><span class="p">:</span> <span class="s1">'reload'</span><span class="cp">%&gt;</span>
+
+<span class="c">&lt;!-- Menjadi --&gt;</span>
+<span class="cp">&lt;%=</span> <span class="n">javascript_include_tag</span> <span class="s1">'application'</span> <span class="cp">%&gt;</span>
+</code></pre></div>    </div>
+  </li>
+  <li>Lalu restart server anda, dan selesai.</li>
+</ol>
+
+<h4 id="langkah-kedua-install-webpacker">Langkah Kedua: Install webpacker</h4>
+
+<p>Setelah turbolinksnya dihapus maka anda sekarang mulai menginstall gem Webpacker-nya, langkah-langkahnya:</p>
+
+<ol>
+  <li>
+    <p>Tambahkan kode ini pada file <code class="language-plaintext highlighter-rouge">Gemfile</code> anda.</p>
+
+    <pre><code class="language-Gemfile">gem 'webpacker', '~&gt; 4.x
+</code></pre>
+
+    <p>Lalu, jalankan perintah (secara berurutan):</p>
+
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$&gt; bundle
+$&gt; bundle exec rails webpacker:install
+$&gt; yarn upgrade
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>Setelah webpacker telah terinstall, langkah selanjutnya anda bisa melakukan installasi vue-nya, dengan menjalankan perintah:</p>
+
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$&gt; bundle exec rails webpacker:install:vue
+</code></pre></div>    </div>
+
+    <p>Selesai.</p>
+
+    <p>Lebih lanjut mengenai installasi ini anda bisa lihat di <a href="https://github.com/rails/webpacker">https://github.com/rails/webpacker</a></p>
+  </li>
+</ol>
+
+<p>Setelah instalasi anda akan dibuatkan folder yang berisi file-file di <code class="language-plaintext highlighter-rouge">app/javascript</code>. Dimana sekarang kode development kita sudah berada di folder ini, bukan di <code class="language-plaintext highlighter-rouge">app/assets/javascript</code> lagi.</p>
+
+<p>Development frontend tanpa assets javascript ini sebenernya sudah memungkinkan, namun jika anda berada pada proyek <em>legacy</em> saya tidak menganjurkan untuk menghapusnya.</p>
+
+<h4 id="langkah-terakhir-setup-vue-component">Langkah Terakhir: Setup Vue Component</h4>
+
+<p>Ok, sekarang kita sudah berada di tahap terakhir.</p>
+
+<p>Sebelumnya mari kita melihat kode di dalam <code class="language-plaintext highlighter-rouge">app/javascript/packs/hello_vue.js</code> yang berisi kode untuk menampilkan component <code class="language-plaintext highlighter-rouge">App</code>(dari file <code class="language-plaintext highlighter-rouge">app.vue</code>) pada akhir element dari <code class="language-plaintext highlighter-rouge">body</code> tag. Sekarang kita mencoba untuk menjalankan file ini di rails kita untuk melihat apakah vue sudah berjalan seperti yang kita ekspektasikan.</p>
+
+<p>Untuk menjalankannya anda hanya tinggal menambahkan kode ini di dalam <code class="language-plaintext highlighter-rouge">&lt;head&gt;</code> tag.</p>
+
+<div class="language-erb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;head&gt;</span>
+    <span class="nt">&lt;title&gt;</span>RailsVueWebpackerExample<span class="nt">&lt;/title&gt;</span>
+    <span class="cp">&lt;%=</span> <span class="n">csrf_meta_tags</span> <span class="cp">%&gt;</span>
+    <span class="cp">&lt;%=</span> <span class="n">csp_meta_tag</span> <span class="cp">%&gt;</span>
+
+    <span class="cp">&lt;%=</span> <span class="n">stylesheet_link_tag</span>    <span class="s1">'application'</span><span class="p">,</span> <span class="ss">media: </span><span class="s1">'all'</span><span class="p">,</span> <span class="s1">'data-turbolinks-track'</span><span class="p">:</span> <span class="s1">'reload'</span> <span class="cp">%&gt;</span>
+    <span class="cp">&lt;%=</span> <span class="n">javascript_include_tag</span> <span class="s1">'application'</span><span class="p">,</span> <span class="s1">'data-turbolinks-track'</span><span class="p">:</span> <span class="s1">'reload'</span>
+    <span class="o">&lt;!--</span> <span class="no">Tambahkan</span> <span class="n">baris</span> <span class="n">kode</span> <span class="n">dibawah</span> <span class="n">ini</span> <span class="o">--&gt;</span>
+    <span class="o">&lt;</span><span class="sx">%= javascript_pack_tag 'hello_vue' </span><span class="cp">%&gt;</span>
+  <span class="nt">&lt;/head&gt;</span>
+</code></pre></div></div>
+
+<p>Silahkan buat satu file controller untuk melihat hasilnya:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$&gt; rails g controller home index
+</code></pre></div></div>
+
+<p>Silahkan buka halaman <code class="language-plaintext highlighter-rouge">/home/index</code> dan anda akan melihat hasilnya disana.</p>
+
+<p>Namun pada produksi kita tidak menggunakan file ini, melainkan kita akan menggunakan <code class="language-plaintext highlighter-rouge">application.js</code>.</p>
+
+<p>Untuk mengakhiri tulisan ini kita akan membuat dua buah component di dua halaman yang berbeda, yaitu <code class="language-plaintext highlighter-rouge">home/index</code> dan <code class="language-plaintext highlighter-rouge">dashboard/index</code>.</p>
+
+<p>Jika sebelumnya <code class="language-plaintext highlighter-rouge">home/index</code> sudah dibuat, sekarang kita membuat <code class="language-plaintext highlighter-rouge">dashboard/index</code>.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$&gt; rails g controller dashboard/index
+</code></pre></div></div>
+
+<p>Dan pada viewsnya masing-masing kita menulis tagnya seperti ini:</p>
+
+<div class="language-erb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">&lt;!-- app/views/dashboard/index.html.erb  --&gt;</span>
+<span class="nt">&lt;h1&gt;</span>Dashboard#index<span class="nt">&lt;/h1&gt;</span>
+<span class="nt">&lt;app-dashboard&gt;&lt;/app-dashboard&gt;</span>
+</code></pre></div></div>
+
+<div class="language-erb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">&lt;!-- app/views/home/index.html.erb --&gt;</span>
+<span class="nt">&lt;h1&gt;</span>Home#index<span class="nt">&lt;/h1&gt;</span>
+<span class="nt">&lt;app-home&gt;&lt;/app-home&gt;</span>
+</code></pre></div></div>
+
+<p>Kita akan membuat dua component yaitu: <code class="language-plaintext highlighter-rouge">app-home</code> dan <code class="language-plaintext highlighter-rouge">app-dashboard</code>.</p>
+
+<p>Maka buatlah file baru: <code class="language-plaintext highlighter-rouge">app/javascript/app-home.vue</code> dan tulis kode seperti dibawah ini:</p>
+
+<div class="language-vue highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;</span><span class="k">template</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"app-home"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;p&gt;&lt;/p&gt;</span>
+  <span class="nt">&lt;/div&gt;</span>
+<span class="nt">&lt;/</span><span class="k">template</span><span class="nt">&gt;</span>
+
+<span class="nt">&lt;</span><span class="k">script</span><span class="nt">&gt;</span>
+<span class="k">export</span> <span class="k">default</span> <span class="p">{</span>
+  <span class="na">data</span><span class="p">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">{</span>
+      <span class="na">message</span><span class="p">:</span> <span class="dl">"</span><span class="s2">Pesan dari app-home</span><span class="dl">"</span>
+    <span class="p">};</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+<span class="nt">&lt;/</span><span class="k">script</span><span class="nt">&gt;</span>
+
+<span class="nt">&lt;</span><span class="k">style</span><span class="nt">&gt;</span>
+<span class="nt">p</span> <span class="p">{</span>
+  <span class="nl">color</span><span class="p">:</span> <span class="no">deeppink</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="nt">&lt;/</span><span class="k">style</span><span class="nt">&gt;</span>
+</code></pre></div></div>
+
+<p>Lalu, buatlah file baru juga: <code class="language-plaintext highlighter-rouge">app/javascript/app-dashboard.vue</code> dan tulis kode sama seperti dibawah ini:</p>
+
+<div class="language-vue highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;</span><span class="k">template</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"app-dashboard"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;p&gt;&lt;/p&gt;</span>
+  <span class="nt">&lt;/div&gt;</span>
+<span class="nt">&lt;/</span><span class="k">template</span><span class="nt">&gt;</span>
+
+<span class="nt">&lt;</span><span class="k">script</span><span class="nt">&gt;</span>
+<span class="k">export</span> <span class="k">default</span> <span class="p">{</span>
+  <span class="na">data</span><span class="p">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">{</span>
+      <span class="na">message</span><span class="p">:</span> <span class="dl">"</span><span class="s2">Pesan dari app-dashboard</span><span class="dl">"</span>
+    <span class="p">};</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+<span class="nt">&lt;/</span><span class="k">script</span><span class="nt">&gt;</span>
+
+<span class="nt">&lt;</span><span class="k">style</span><span class="nt">&gt;</span>
+<span class="nt">p</span> <span class="p">{</span>
+  <span class="nl">color</span><span class="p">:</span> <span class="no">darkblue</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="nt">&lt;/</span><span class="k">style</span><span class="nt">&gt;</span>
+</code></pre></div></div>
+
+<p>Lalu terakhir, daftarkan kedua file(<em>component</em>) diatas pada file <code class="language-plaintext highlighter-rouge">app/javascripts/packs/application.js</code>, seperti kode dibawah ini:</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nx">Vue</span> <span class="k">from</span> <span class="dl">"</span><span class="s2">vue/dist/vue.esm</span><span class="dl">"</span><span class="p">;</span>
+<span class="k">import</span> <span class="nx">AppHome</span> <span class="k">from</span> <span class="dl">"</span><span class="s2">../app-home.vue</span><span class="dl">"</span><span class="p">;</span>
+<span class="k">import</span> <span class="nx">AppDashboard</span> <span class="k">from</span> <span class="dl">"</span><span class="s2">../app-dashboard.vue</span><span class="dl">"</span><span class="p">;</span>
+
+<span class="nb">document</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="dl">"</span><span class="s2">DOMContentLoaded</span><span class="dl">"</span><span class="p">,</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="kd">const</span> <span class="nx">app</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Vue</span><span class="p">({</span>
+    <span class="na">el</span><span class="p">:</span> <span class="dl">"</span><span class="s2">#app</span><span class="dl">"</span><span class="p">,</span>
+    <span class="na">data</span><span class="p">:</span> <span class="p">{},</span>
+    <span class="na">components</span><span class="p">:</span> <span class="p">{</span> <span class="nx">AppHome</span><span class="p">,</span> <span class="nx">AppDashboard</span> <span class="p">}</span>
+  <span class="p">});</span>
+<span class="p">});</span>
+</code></pre></div></div>
+
+<p>Jika kita liat kode diatas, kedua komponent itu didaftarkan ke dalam salah satu id tertentu, pada kode diatas yaitu <code class="language-plaintext highlighter-rouge">#app</code>. Maka pada file <code class="language-plaintext highlighter-rouge">app/views/application.html.erb</code> kita ubah kodenya menjadi seperti ini:</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;body&gt;</span>
+  <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"app"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;</span><span class="err">%=</span> <span class="na">yield</span> <span class="err">%</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;/div&gt;</span>
+<span class="nt">&lt;/body&gt;</span>
+</code></pre></div></div>
+
+<p>Kita apit <code class="language-plaintext highlighter-rouge">&lt;%= yield %&gt;</code>-nya di dalam <code class="language-plaintext highlighter-rouge">div#app</code>.</p>
+
+<p>Dan jangan lupa untuk memodifikasi file <code class="language-plaintext highlighter-rouge">config/initializers/content_security_policy.rb</code> yang sebelumnya sudah dibuat ketika kita install webpackernya menjadi:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">config</span><span class="p">.</span><span class="nf">content_security_policy</span> <span class="k">do</span> <span class="o">|</span><span class="n">policy</span><span class="o">|</span>
+  <span class="k">if</span> <span class="no">Rails</span><span class="p">.</span><span class="nf">env</span><span class="p">.</span><span class="nf">development?</span>
+    <span class="n">policy</span><span class="p">.</span><span class="nf">script_src</span> <span class="ss">:self</span><span class="p">,</span> <span class="ss">:https</span><span class="p">,</span> <span class="ss">:unsafe_eval</span><span class="p">,</span> <span class="ss">:unsafe_inline</span>
+  <span class="k">else</span>
+    <span class="n">policy</span><span class="p">.</span><span class="nf">script_src</span> <span class="ss">:self</span><span class="p">,</span> <span class="ss">:https</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Lalu restart ulang rails servernya dan tambahkan terminalnya untuk menjalankan webpack-server dengan perintah <code class="language-plaintext highlighter-rouge">$&gt; bin/webpack-dev-server</code>.</p>
+
+<p>Ketika bekerja dengan webpack, kita membutuhkan dua port server, jika anda ingin flexibilitas, anda bisa gunakan <a href="https://github.com/ddollar/foreman">foreman</a>. Penggunakan <em>forman</em> diluar scope tulisan ini, anda bisa baca dokumentasi pada link yang bersangkutan.</p>
+
+<p>Setelah kedua port tersebut jalan, maka anda bisa melihat pesannya tampil di kedua halaman tersebut.</p>
+
+<p>Begitu juga dengan test-nya. Anda bisa menggunan <code class="language-plaintext highlighter-rouge">system-spec</code> untuk melakukan pengujian pada kedua halaman tersebut dengan mudah:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># frozen_string_literal: true</span>
+
+<span class="nb">require</span> <span class="s1">'rails_helper'</span>
+
+<span class="no">RSpec</span><span class="p">.</span><span class="nf">describe</span> <span class="s1">'Home index'</span><span class="p">,</span> <span class="ss">type: :system</span><span class="p">,</span> <span class="ss">js: </span><span class="kp">true</span> <span class="k">do</span>
+  <span class="n">it</span> <span class="s1">'returns expected message'</span> <span class="k">do</span>
+    <span class="n">visit</span> <span class="n">home_index_path</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">page</span><span class="p">).</span><span class="nf">to</span> <span class="n">have_content</span> <span class="s1">'Pesan dari app-home'</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="no">RSpec</span><span class="p">.</span><span class="nf">describe</span> <span class="s1">'Dashboard index'</span><span class="p">,</span> <span class="ss">type: :system</span><span class="p">,</span> <span class="ss">js: </span><span class="kp">true</span> <span class="k">do</span>
+  <span class="n">it</span> <span class="s1">'returns expected message'</span> <span class="k">do</span>
+    <span class="n">visit</span> <span class="n">dashboard_index_path</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">page</span><span class="p">).</span><span class="nf">to</span> <span class="n">have_content</span> <span class="s1">'Pesan dari app-dashboard'</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Untuk setting configuration pada <code class="language-plaintext highlighter-rouge">system-spec</code> ini anda bisa ikuti <a href="https://medium.com/table-xi/a-quick-guide-to-rails-system-tests-in-rspec-b6e9e8a8b5f6">panduan ini</a></p>
+
+<p>Sekiranya sampai sini saja tulisan ini, untuk lebih kompleks mengenai vue.js mungkin akan saya tulis di tulisan yang lain,</p>
+
+<p>Sampai bertemu lagi.</p>
+:ET

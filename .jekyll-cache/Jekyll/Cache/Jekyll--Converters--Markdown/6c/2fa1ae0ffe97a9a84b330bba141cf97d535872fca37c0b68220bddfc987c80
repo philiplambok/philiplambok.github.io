@@ -1,0 +1,152 @@
+I"�/<p>Pada tulisan kali ini gw mau ngobrolin tentang <a href="https://github.com/jnunemaker/flipper">Flipper</a>.</p>
+
+<p>Sebuah paket di lingkungan Ruby, untuk membantu developing aplikasi <em>feature toggle</em>.</p>
+
+<p>Apa itu <em>feature toggle</em> yang kalo dibahasa indonesia-in mungkin jadi saklar fitur (?)</p>
+
+<p>Dengan fitur ini kita bisa menganti sifat dari aplikasi tanpa harus ada perubahan dari kodenya. Mamfaatnya juga ada banyak, bisa untuk prototyping, atau bisa digunakan sebagai strategi deployment atau switcher untuk fitur yang relatif besar, dan juga bisa untuk backward compatibility dengan lebih cepat dibandingnya revert deployment.</p>
+
+<hr />
+
+<p>Seperti pada biasanya gw akan mencontohnya penggunaaan Flipper dengan studi kasus.</p>
+
+<p>Misalnya kita dapat task untuk mendevelop dashboard baru. Dashboard ini misalnya ada 20 halaman, dan kita tidak ingin melakukan 1 deployment untuk mengganti 20 halaman ini, namun misalnya dengan 1 halaman 1 deployment.</p>
+
+<p>Artinya kita ingin akan ada spesific user di production yang menggunakan fitur new dashboard dari deployment pertama. Dan user lain tetap menggunakan dashboard lama, hingga semua halaman terdevelop dengan benar.</p>
+
+<p>Oke, kira-kira begitu kasusnya, mari mulai develop.</p>
+
+<p>Silahkan bikin projek rails baru, dan generate simple controller</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$&gt; bundle exec rails g controller dashboards index
+</code></pre></div></div>
+
+<p>Pada <code class="language-plaintext highlighter-rouge">routes.rb</code>, bisa diupdate jadi gini:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">root</span> <span class="s1">'dashboards#index'</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Edit viewnya dan akses urlnya, maka responsenya akan begini:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GET /
+
+Dashboards#index
+Welcome to dashboards
+</code></pre></div></div>
+
+<p>Oke, sekarang kita install flippernya, dengan tambah gem ini:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">gem</span> <span class="s1">'flipper'</span>
+<span class="n">gem</span> <span class="s1">'flipper-ui'</span>
+<span class="n">gem</span> <span class="s1">'flipper-active_record'</span>
+</code></pre></div></div>
+
+<p>Jalankan <code class="language-plaintext highlighter-rouge">bundle install</code>.</p>
+
+<p>Dengan buat file initializernya <code class="language-plaintext highlighter-rouge">config/initializers/flipper.rb</code></p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">require</span> <span class="s1">'flipper'</span>
+
+<span class="no">Flipper</span><span class="p">.</span><span class="nf">configure</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">default</span> <span class="k">do</span>
+    <span class="c1"># use active records as the flipper adapter.</span>
+    <span class="n">adapter</span> <span class="o">=</span> <span class="no">Flipper</span><span class="o">::</span><span class="no">Adapters</span><span class="o">::</span><span class="no">ActiveRecord</span><span class="p">.</span><span class="nf">new</span>
+
+    <span class="c1"># pass adapter to handy DSL instance</span>
+    <span class="no">Flipper</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">adapter</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Kita akan menggunakan database (active record) instead memory untuk alasan kesehatan mental :)</p>
+
+<p>Sekarang tambahkan routes UI-nya, di <code class="language-plaintext highlighter-rouge">routes.rb</code>:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">mount</span> <span class="no">Flipper</span><span class="o">::</span><span class="no">UI</span><span class="p">.</span><span class="nf">app</span><span class="p">(</span><span class="no">Flipper</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="s1">'/flipper'</span>
+
+  <span class="n">root</span> <span class="s1">'dashboards#index'</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Oke, sekarang kita bisa akses halaman <code class="language-plaintext highlighter-rouge">/flipper</code> dan akan muncul UI dari Flipper. Flipper gem yang cukup terkenal, jadi ada kemungkinan ada orang yang bisa akses ke UInya. Untuk alasan keamanan anda bisa wrap halaman ini dengan otentikasi, atau bisa sembuyikan UI-nya dengan random url, untuk ini saya udah pernah tulis caranya di tulisan <a href="https://philiplambok.github.io/security,/rails/2020/10/24/menyembunyikan-routes-di-rails.html">Menyembunyikan spesifik routes di Rails</a>.</p>
+
+<p>Sekarang pada halaman <code class="language-plaintext highlighter-rouge">/flipper</code>, klik button <code class="language-plaintext highlighter-rouge">add feature</code> lalu masukkan <code class="language-plaintext highlighter-rouge">new_dashboard</code> dan tekan <code class="language-plaintext highlighter-rouge">add feature</code> kembali.</p>
+
+<p>Maka kita akan dibawa ke halaman managemen fiturnya. Pada halaman ini anda bisa tambahkan aktor baru dan masukkan string <code class="language-plaintext highlighter-rouge">123</code>. Ini kita anggap user idnya. Jadi dengan ini kita akan anggap user new dashboard akan hanya bisa dipakai oleh user 123, selain id ini akan menggunakan user lama.</p>
+
+<p>Kita bikin servicenya, <code class="language-plaintext highlighter-rouge">app/services/new_dashboard_feature.rb</code>:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">NewDashboardFeature</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">enabled?</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
+    <span class="n">new</span><span class="p">.</span><span class="nf">enabled?</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">enabled?</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kp">true</span> <span class="k">if</span> <span class="no">Flipper</span><span class="p">.</span><span class="nf">enabled?</span><span class="p">(</span><span class="ss">:new_dashboard</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kp">false</span> <span class="k">if</span> <span class="n">user_id</span><span class="p">.</span><span class="nf">blank?</span>
+
+    <span class="n">actors</span> <span class="o">=</span> <span class="no">Flipper</span><span class="o">::</span><span class="no">Adapters</span><span class="o">::</span><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Gate</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span>
+      <span class="ss">feature_key: </span><span class="s1">'new_dashboard'</span><span class="p">,</span>
+      <span class="ss">key: </span><span class="s1">'actors'</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="kp">false</span> <span class="k">if</span> <span class="n">actors</span><span class="p">.</span><span class="nf">blank?</span>
+
+    <span class="n">user_ids</span> <span class="o">=</span> <span class="n">actors</span><span class="p">.</span><span class="nf">pluck</span><span class="p">(</span><span class="ss">:value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kp">false</span> <span class="k">unless</span> <span class="n">user_ids</span><span class="p">.</span><span class="nf">include?</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
+
+    <span class="kp">true</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Sekarang pada viewsnya kita update jadi seperti ini:</p>
+
+<div class="language-erb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;h1&gt;</span>Dashboards#index<span class="nt">&lt;/h1&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">if</span>  <span class="no">NewDashboardFeature</span><span class="p">.</span><span class="nf">enabled?</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:user_id</span><span class="p">])</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;p&gt;</span>Welcome to new dashboards<span class="nt">&lt;/p&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">else</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;p&gt;</span>Welcome to dashboards<span class="nt">&lt;/p&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+</code></pre></div></div>
+
+<p>Sekarang kembali akses halaman <code class="language-plaintext highlighter-rouge">localhost:3000/</code></p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Dashboards#index
+Welcome to dashboards
+</code></pre></div></div>
+
+<p>Masih menggunakan dashboard lama, sekarang kita masukkan user_id 123 <code class="language-plaintext highlighter-rouge">localhost:3000?user_id=123</code></p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Dashboards#index
+Welcome to new dashboards
+</code></pre></div></div>
+
+<p>Dan jika yang akses user id lain, misalnya <code class="language-plaintext highlighter-rouge">localhost:3000?user_id=1234</code>:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Dashboards#index
+Welcome to dashboards
+</code></pre></div></div>
+
+<p>Dan jika anda butuh user lain, tinggal tambahkan idnya di aktor pada halaman fitur <code class="language-plaintext highlighter-rouge">new_dashboard</code>. Dan jika sudah aman, dan ingin fitur new dashboard ini digunakan di semua user tinggal klik tombol “Fully enable” di halaman managemen fitur <code class="language-plaintext highlighter-rouge">new_dashboard</code> di Flipper UI-nya.</p>
+
+<p>Maka semua user termasuk user id 123 <code class="language-plaintext highlighter-rouge">localhost:3000?user_id=123</code> akan menggunakan dashboard baru:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Dashboards#index
+Welcome to new dashboards
+</code></pre></div></div>
+
+<p>Dan jika ternyata ada issue, ingin melakukan revert, bisa klik tombol “Disable” di index page Flipper UI. Maka semua user akan menggunakan dashboard lama, termasuk user_id 123 <code class="language-plaintext highlighter-rouge">localhost:3000?user_id=123</code>:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Dashboards#index
+Welcome to dashboards
+</code></pre></div></div>
+
+<hr />
+
+<p>Mungkin itu saja tulisan kali ini, jika tertarik dengan kode sumbernya bisa ditemukan disini: <a href="https://github.com/sugar-for-pirate-king/play-with-flipper">https://github.com/sugar-for-pirate-king/play-with-flipper</a>.</p>
+
+<p>Happy hacking~~</p>
+:ET

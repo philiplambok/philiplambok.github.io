@@ -1,0 +1,179 @@
+I"^.<!-- Apa yang ini ingin disampaiikan?
+
+- Masalah pada active record.
+- Perlunya sebuah standard.
+- Masukkan rule domain model dari buku painless rails.
+- pengenalan repository pattern.
+- pengenalan konsep mutator.
+- gunanya namespacing.
+- pentingnya kode uji
+- kesimpulan.
+-
+-->
+
+<p>Jika anda mengingat kembali hari-hari awal kita menulis kode Active Record mungkin sangat menyenangkan.</p>
+
+<p>Namun seiringnya waktu, kode yang ditulis oleh active record menjadi sangat besar dan sulit dipelihara. Saya sudah pernah mengulas tentang hal ini ditulisan sebelumnya, mungkin anda bisa cek <a href="https://philiplambok.github.io/rails/2019/04/28/mutator-bagian-gelap-dari-service.html">disini</a>.</p>
+
+<p>Pada tulisan ini saya ingin fokus memberikan beberapa tips yang mungkin dapat membuat kode anda lebih mudah dipelihara khusunya pada model anda.</p>
+
+<h4 id="pertama-jangan-gunakan-activerecord-callbacks-seperti-before_create-after_create-dan-sejenisnya">Pertama: Jangan gunakan Active::Record callbacks seperti <code class="language-plaintext highlighter-rouge">before_create</code>, <code class="language-plaintext highlighter-rouge">after_create</code> dan sejenisnya.</h4>
+
+<p>Untuk list lengkap dari action-actionnya ada di <a href="https://guides.rubyonrails.org/active_record_callbacks.html">dokumentasi ini</a>.</p>
+
+<p>Callback adalah kode proses bisnis yang sangat cepat untuk berubah-ubah(dinamis). Bagi saya model yang baik itu adalah model yang jarang untuk berubah.
+Selain itu, kode bisnis juga sangat bisa menjadi kompleks.</p>
+
+<p>Contohnya ketika sebuah data dihapus, sistem bisa saja melakukan banyak sekali hal-hal yang berakhir dengan seratus baris untuk sebuah callback <code class="language-plaintext highlighter-rouge">after_destroy</code> saja, belum termasuk <code class="language-plaintext highlighter-rouge">before_destroy</code> atau <code class="language-plaintext highlighter-rouge">after_create</code> jika mungkin nanti ada.</p>
+
+<p>Alternativenya anda bisa menggunakan konsep Mutator.</p>
+
+<p>Saya sudah pernah bahas konsep ini di <a href="https://philiplambok.github.io/rails/2019/04/28/mutator-bagian-gelap-dari-service.html">tulisan yang sebelumnya</a>.</p>
+
+<h4 id="kedua-model-tidak-diperbolehkan-untuk-memiki-dependency">Kedua: Model tidak diperbolehkan untuk memiki <em>dependency</em>.</h4>
+
+<p>Singkatnya, anda hanya boleh memangil <em>method-method</em> yang ada di dalam kelas yang bersangkutan saja dan tidak boleh memanggil kelas lain.</p>
+
+<p>Contohnya seperti ini:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="k">def</span> <span class="nf">add_log</span>
+    <span class="no">Log</span><span class="p">.</span><span class="nf">add_user_log</span><span class="p">(</span><span class="s2">"User log created"</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Pada kode diatas anda memangil kelas <code class="language-plaintext highlighter-rouge">Log</code> pada kelas <code class="language-plaintext highlighter-rouge">User</code>, artinya kelas <code class="language-plaintext highlighter-rouge">User</code> memiliki <em>dependency</em> pada kelas <code class="language-plaintext highlighter-rouge">Log</code>. Artinya ketika model <code class="language-plaintext highlighter-rouge">Log</code> anda ubah, maka model <code class="language-plaintext highlighter-rouge">User</code> juga akan ikut berubah.</p>
+
+<p>Rails menganut pola MVC pada developmentnya, dimana pada pola itu model adalah core kelas atau objek yang bisa dipanggil dibanyak tempat seperti controller, view atau service dan sebagainya.</p>
+
+<p>Maka saya tidak ingin model memiliki <em>dependency</em> pada model lain atau kelas lain.</p>
+
+<p>Jika pada suatu model terdapat <em>dependency</em> maka rantaian <em>dependency</em> pada sebuah proses tersebut akan menjadi sangat besar sehingga kode sulit untuk dipelihara.</p>
+
+<p>Hal ini bisa terealisasi jika anda tidak menggunakan <code class="language-plaintext highlighter-rouge">callback</code>, tips yang sebelumnya.</p>
+
+<h4 id="ketiga-perlunya-sebuah-standard">Ketiga: Perlunya sebuah <em>standard</em></h4>
+
+<p>Berdasarkan tips-tips sebelumnya, maka anda butuh sebuah <em>standard</em> atau <em>rule</em> dalam menulis kode model.</p>
+
+<p>Active Record sangat-sangat ideal sekali dalam menampilkan data, namun cukup buruk untuk menulis atau memberharui data pada database.</p>
+
+<p>Maka anda perlu <em>rule</em> yang cukup ketat untuk membatasi domain pada model ini, <em>rule</em> ini saya ambil dari sebuah buku yang ditulis oleh <a href="https://github.com/inem">Ivan Nemytchenko</a>.</p>
+
+<p>Model hanya dibolehkan memiliki 3 hal ini:</p>
+
+<ol>
+  <li>Asosiasi. <code class="language-plaintext highlighter-rouge">belongs_to</code>, <code class="language-plaintext highlighter-rouge">has_many</code> dan sejenisnya dibolehkan.</li>
+  <li><em>Attribute</em>. <code class="language-plaintext highlighter-rouge">enum status: { :active, :inactive }</code>, <code class="language-plaintext highlighter-rouge">attr_reader</code>, <code class="language-plaintext highlighter-rouge">attributes</code>, <code class="language-plaintext highlighter-rouge">delegate :local, :user</code> dan sejenisnya dibolehkan.</li>
+  <li>Aturan bisnis terkait model yang bersangkutan. Contohnya seperti validasi: <code class="language-plaintext highlighter-rouge">validates :username, presence: true</code> atau mempertanyakan tentang field dari model <code class="language-plaintext highlighter-rouge">def admin?; end</code></li>
+</ol>
+
+<p>Model tidak boleh memiliki:</p>
+
+<ul>
+  <li>
+    <p>Aplikasi logic seperti:</p>
+
+    <div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">User</span>
+ <span class="n">has_many</span> <span class="ss">:items</span>
+
+ <span class="k">def</span> <span class="nf">add_item</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+   <span class="n">items</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="n">item</span><span class="p">.</span><span class="nf">attributes</span><span class="p">)</span>
+ <span class="k">end</span>
+</code></pre></div>    </div>
+  </li>
+  <li>Jangan melakukan otorisasi seperti <code class="language-plaintext highlighter-rouge">User.can_edit_post(post)</code>, lebih baik gunakan <em>policy object</em>.</li>
+  <li>
+    <p>Penggunaan <code class="language-plaintext highlighter-rouge">scope</code> sebaiknya juga dihindari, lebih baik gunakan <em>repository pattern</em>, contohnya seperti kode ini:</p>
+
+    <div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># app/repositories/user_repository.rb</span>
+<span class="k">module</span> <span class="nn">UserRepository</span>
+  <span class="kp">extend</span> <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Concern</span>
+
+  <span class="n">included</span> <span class="k">do</span>
+    <span class="n">scope</span> <span class="ss">:admins</span><span class="p">,</span>
+          <span class="o">-&gt;</span> <span class="p">{</span> <span class="n">where</span><span class="p">(</span><span class="ss">admin: </span><span class="kp">true</span><span class="p">)</span> <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># app/model/user.rb</span>
+<span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="kp">include</span> <span class="no">UserRepository</span>
+<span class="k">end</span>
+
+<span class="c1"># anda bisa memanggilnya seperti ini</span>
+<span class="no">User</span><span class="p">.</span><span class="nf">admins</span>
+</code></pre></div>    </div>
+  </li>
+</ul>
+
+<p>Maka, saya melihat sebuah objek model itu lebih mempresentasikan sebuah <em>record</em> dibandingkan sebuah <em>table</em>.</p>
+
+<p><img src="/../assets/rule_model.png" alt="rule model" /></p>
+
+<h4 id="keempat-gunakan-static-analyzer">Keempat: Gunakan Static Analyzer</h4>
+
+<p>Salah satunya adalah <a href="https://github.com/rubocop-hq/rubocop">Rubocop</a> anda bisa set di file <code class="language-plaintext highlighter-rouge">rubocop.yml</code></p>
+
+<div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">Rails</span><span class="pi">:</span>
+  <span class="na">Enabled</span><span class="pi">:</span> <span class="no">true</span>
+</code></pre></div></div>
+
+<p>Dengan static analyzer anda bisa mengunakan method-method yang sesuai standard yang direkomendasikan oleh komunitas Rails.</p>
+
+<h4 id="kelima-gunakan-fitur-namespacing">Kelima: Gunakan fitur namespacing</h4>
+
+<p>Jangan menaruh sebuah model pada level yang sama, misalnya</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/models
+  -- user.rb
+  -- article.rb
+  -- article_comment.rb
+</code></pre></div></div>
+
+<p>Tapi coba berikan <code class="language-plaintext highlighter-rouge">namespace</code> pada model anda sehingga arsitektur folder anda bisa menceritakan sistem aplikasi apa yang anda buat. Anda bisa lakukan refactor menjadi seperti ini.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/models
+  -- user.rb
+  -- article.rb
+  /article
+    - comment.rb
+</code></pre></div></div>
+
+<p>Artinya model comment anda simpan di dalam modul article:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">module</span> <span class="nn">Article</span>
+  <span class="k">class</span> <span class="nc">Comment</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<h4 id="keenam-gunakan-annotate_models">Keenam: Gunakan <em>annotate_models</em></h4>
+
+<p><em>Annotate_models</em> adalah sebuah gem yang memberikan komentar daftar field-field apa saja yang ada pada sebuah model. Anda bisa cek dokumentasinya <a href="https://github.com/ctran/annotate_models">disini</a>.</p>
+
+<h4 id="terakhir-jangan-lupa-untuk-uji-model-anda">Terakhir: Jangan lupa untuk uji model anda.</h4>
+
+<p>Sebenernya tips ini lebih penting dari semuanya, namun saya taruh di paling terakhir karena saya anggap anda sudah paham pentingnya kode test ini.</p>
+
+<p>Jika anda ingin mengimplementasikan tips-tips diatas pada kode <em>legacy</em> sebaiknya gunakan metode <em>cover and modify</em> yaitu tulis kode testnya dulu baru kemudian ubah kode produksinya.</p>
+
+<h4 id="kesimpulan">Kesimpulan</h4>
+
+<p>Mari kita buatkan list dari tips-tips sebelumnya dibagian ini:</p>
+
+<ul>
+  <li>Jangan gunakan Active::Record callbacks seperti <code class="language-plaintext highlighter-rouge">before_create</code>, <code class="language-plaintext highlighter-rouge">after_create</code> dan sejenisnya.</li>
+  <li>Model tidak diperbolehkan untuk memiki <em>dependency</em></li>
+  <li>Perlunya Sebuah Standard</li>
+  <li>Gunakan Static Analyzer</li>
+  <li>Gunakan fitur namespacing (module)</li>
+  <li>Gunakan annotate_models</li>
+  <li>Jangan lupa untuk uji model anda.</li>
+</ul>
+
+<p>Tips ini tidak bersifat mutlak, mungkin ada beberapa yang belum tercover. Jika nanti saya menemukan hal yang baru, saya akan update lagi.</p>
+
+<p>Jika anda memiliki <em>preference</em> atau opini yang berbeda dengan saya, anda bisa berikan kritik dan saran kepada saya. Sekian saja untuk tulisan ini, terima kasih.</p>
+:ET

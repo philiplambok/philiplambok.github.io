@@ -1,0 +1,27 @@
+I"f<p>Di tulisan ini saya hanya ingin kasih tau kalo saya baru saja membuat <em>rails template</em> sendiri.</p>
+
+<p>Jika anda seperti saya, orang yang belajar sesuatu atau mencoba sesuatu biasanya dengan implementasi projek baru (aplikasi Rails yang baru), mungkin anda lelah untuk melakukan setup instalasi <em>testing framework</em>, <em>bootstrap</em>, <em>javascript framework</em> dan sejenisnya setiap ingin memulai ber-eksperiment.</p>
+
+<p>Mungkin projek ini cocok untuk anda: <a href="https://github.com/sugar-for-pirate-king/rails-app-template">rails-app-template</a></p>
+
+<p>Karna projek ini, projek kemarin sore, jadi mungkin masih belum banyak yang anda dapat dari sini, tapi menurut saya ini sudah cukup untuk eksperimen projek.</p>
+
+<p>Saat tulisan ini ditulis, anda akan mendapatkan:</p>
+<ul>
+  <li>Setup testing framework secara penuh (system test, unit test &amp; factory_bot)</li>
+  <li>Vue.js (Javascript framework)</li>
+  <li>Bootstrap (CSS Framework)</li>
+  <li>Pry-rails (Dubugger)</li>
+  <li><code class="language-plaintext highlighter-rouge">rubocop.yml</code> (Static analizer)</li>
+  <li>Costum architecture.</li>
+</ul>
+
+<p>Namun, sebelum anda mau pakai anda harus edit file <code class="language-plaintext highlighter-rouge">template.rb</code> sesuai <em>local</em> anda, contohnya pada konstanta <code class="language-plaintext highlighter-rouge">BASE_PATH</code>.Silahkan sesuaikan dengan path template repo ini diclone.</p>
+
+<p>Begitu juga dengan driver testingnya, saya pake <em>chrome</em> jadi anda harus sesuakan drivernya dengan sistem operasi anda. Linux adalah default drivernya. Dan jangan lupa juga anda harus sudah punya chrome yang terinstal di <em>local</em> anda :).</p>
+
+<p>Begitu saja tulisan ini, jika anda tertarik mengembangkan projek ini agar lebih <em>stable</em> silahkan lempar pull-request-nya ke saya :)</p>
+
+<p>Sekian dan terima kasih.</p>
+
+:ET

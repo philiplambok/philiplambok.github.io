@@ -1,0 +1,2 @@
+I"‰<p>Dalam software development biasanya kita mengenal tiga fase, yaitu <em>development</em>, <em>staging</em> dan <em>production</em>. Setelah <em>pull-request</em>, kita lakukan <em>merge</em> ke branch <em>develop</em>, satu-per-satu <em>commit</em> tadi kita <em>cherry-pick</em> ke <em>staging</em> dan dari <em>staging</em> kita lakukan <em>merge</em> ke master (<em>production</em>).</p>
+:ET

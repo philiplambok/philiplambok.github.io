@@ -1,0 +1,374 @@
+I"�<p>Pada tulisan ini saya mau ngobroling tentang vue.js</p>
+
+<p>Ditulisan pertama saya tentang vue.js ini saya mau ngobrolin tentang bagaimana melakukan refactoring di vue.js. Jelas sebenernya refactoring adalah studi yang luas yang tidak mungkin dibahas hanya dengan satu halaman saja.</p>
+
+<p>Pada tulisan ini kita akan membahas salah satu dari sekian banyaknya saja, yang menurut saya yang konsepnya lumayan <em>powerful</em>. Yaitu adalah melakukan refactoring dengan <em>dekomposisi komponen</em>. Singkatnya membuat komponen yang besar menjadi kecil-kecil.</p>
+
+<p>Seperti biasa, kita akan membahasnya dengan studi kasus. Untuk tulisan ini kita akan mencoba membuat fitur untuk menambahkan note baru. Di form tersebut ada dua field yang berbeda yaitu <em>title</em> dan <em>body</em>. Jika kedua field tersebut diisi maka pesan yang dikembalikan adalah <em>“Note has been publised”</em>, namun jika salah satu atau keduanya field tidak diisi maka akan dibalikan pesan <em>error</em>.</p>
+
+<p>Kita akan menggunakan Rails dalam implementasinya, karena kita akan menggunakan <em>test-driven development</em>.</p>
+
+<p>Oke, mari mulai.</p>
+
+<p>Pertama, mari kita buat kode testnya terlebih dahulu, kira-kira:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># frozen_string_literal: true</span>
+
+<span class="c1"># filename: spec/system/notes/create_spec</span>
+
+<span class="nb">require</span> <span class="s1">'rails_helper'</span>
+
+<span class="no">RSpec</span><span class="p">.</span><span class="nf">describe</span> <span class="s1">'Create Note'</span><span class="p">,</span> <span class="ss">type: :system</span><span class="p">,</span> <span class="ss">js: </span><span class="kp">true</span> <span class="k">do</span>
+  <span class="n">it</span> <span class="s1">'returns success message'</span> <span class="k">do</span>
+    <span class="n">visit</span> <span class="n">new_note_path</span>
+    <span class="n">fill_in</span> <span class="ss">:note_title</span><span class="p">,</span> <span class="ss">with: </span><span class="s1">'Refactoring Vue.js'</span>
+    <span class="n">fill_in</span> <span class="ss">:note_body</span><span class="p">,</span> <span class="ss">with: </span><span class="s1">'Create small components'</span>
+    <span class="n">click_on</span> <span class="s1">'Submit'</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">page</span><span class="p">).</span><span class="nf">to</span> <span class="n">have_content</span> <span class="s1">'Note has been published'</span>
+  <span class="k">end</span>
+
+  <span class="n">it</span> <span class="s1">'returns error message when title was blank'</span> <span class="k">do</span>
+    <span class="n">visit</span> <span class="n">new_note_path</span>
+    <span class="n">fill_in</span> <span class="ss">:note_title</span><span class="p">,</span> <span class="ss">with: </span><span class="s1">''</span>
+    <span class="n">fill_in</span> <span class="ss">:note_body</span><span class="p">,</span> <span class="ss">with: </span><span class="s1">'Create small components'</span>
+    <span class="n">click_on</span> <span class="s1">'Submit'</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">page</span><span class="p">).</span><span class="nf">to</span> <span class="n">have_content</span> <span class="s2">"Title can't be blank"</span>
+  <span class="k">end</span>
+
+  <span class="n">it</span> <span class="s1">'returns error message when body was blank'</span> <span class="k">do</span>
+    <span class="n">visit</span> <span class="n">new_note_path</span>
+    <span class="n">fill_in</span> <span class="ss">:note_title</span><span class="p">,</span> <span class="ss">with: </span><span class="s1">'Refactoring Vue.js'</span>
+    <span class="n">fill_in</span> <span class="ss">:note_body</span><span class="p">,</span> <span class="ss">with: </span><span class="s1">''</span>
+    <span class="n">click_on</span> <span class="s1">'Submit'</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">page</span><span class="p">).</span><span class="nf">to</span> <span class="n">have_content</span> <span class="s2">"Body can't be blank"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Jalankan. Lalu kode test kita akan error.</p>
+
+<p>Sekarang waktunya kita membuat kode testnya menjadi sukses.</p>
+
+<p>Silahkan buatkan routesnya:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># frozen_string_literal: true</span>
+
+<span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:notes</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Lalu buat controllernya:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># frozen_string_literal: true</span>
+
+<span class="k">class</span> <span class="nc">NotesController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">new</span><span class="p">;</span> <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Lalu buatkan view-nya:</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"container"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"row"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"col-md-4 mt-4 mx-auto"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;note-form&gt;&lt;/note-form&gt;</span>
+    <span class="nt">&lt;/div&gt;</span>
+  <span class="nt">&lt;/div&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+</code></pre></div></div>
+
+<p>Lalu <em>register</em> komponen tersebut di <code class="language-plaintext highlighter-rouge">application.js</code></p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nx">TurbolinksAdapter</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">vue-turbolinks</span><span class="dl">'</span>
+<span class="k">import</span> <span class="nx">Vue</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">vue/dist/vue.esm</span><span class="dl">'</span>
+<span class="k">import</span> <span class="nx">App</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">../app.vue</span><span class="dl">'</span>
+<span class="k">import</span> <span class="nx">NoteForm</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">../note_form.vue</span><span class="dl">'</span>
+
+<span class="nx">Vue</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">TurbolinksAdapter</span><span class="p">)</span>
+
+<span class="nb">document</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="dl">'</span><span class="s1">turbolinks:load</span><span class="dl">'</span><span class="p">,</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="kd">const</span> <span class="nx">app</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Vue</span><span class="p">({</span>
+    <span class="na">el</span><span class="p">:</span> <span class="dl">'</span><span class="s1">#app</span><span class="dl">'</span><span class="p">,</span>
+    <span class="na">components</span><span class="p">:</span> <span class="p">{</span> <span class="nx">App</span><span class="p">,</span> <span class="nx">NoteForm</span> <span class="p">}</span>
+  <span class="p">})</span>
+<span class="p">})</span>
+</code></pre></div></div>
+
+<p>Lalu buat komponen <code class="language-plaintext highlighter-rouge">note-form</code>-nya.</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;template&gt;</span>
+  <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"note-form"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;div</span> <span class="na">v-if=</span><span class="s">"successMessage"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"alert alert-success alert-dismissible fade show"</span> <span class="na">role=</span><span class="s">"alert"</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;span&gt;&lt;/span&gt;</span>
+        <span class="nt">&lt;button</span> <span class="na">type=</span><span class="s">"button"</span> <span class="na">class=</span><span class="s">"close"</span> <span class="na">data-dismiss=</span><span class="s">"alert"</span> <span class="na">aria-label=</span><span class="s">"Close"</span><span class="nt">&gt;</span>
+          <span class="nt">&lt;span</span> <span class="na">aria-hidden=</span><span class="s">"true"</span><span class="nt">&gt;</span><span class="ni">&amp;times;</span><span class="nt">&lt;/span&gt;</span>
+        <span class="nt">&lt;/button&gt;</span>
+      <span class="nt">&lt;/div&gt;</span>
+    <span class="nt">&lt;/div&gt;</span>
+    <span class="nt">&lt;div</span> <span class="na">v-if=</span><span class="s">"errors.length &gt; 0"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"alert alert-danger alert-dismissible fade show"</span> <span class="na">role=</span><span class="s">"alert"</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;li</span> <span class="na">v-for=</span><span class="s">"error of errors"</span> <span class="na">:key=</span><span class="s">"error"</span><span class="nt">&gt;&lt;/li&gt;</span>
+        <span class="nt">&lt;button</span> <span class="na">type=</span><span class="s">"button"</span> <span class="na">class=</span><span class="s">"close"</span> <span class="na">data-dismiss=</span><span class="s">"alert"</span> <span class="na">aria-label=</span><span class="s">"Close"</span><span class="nt">&gt;</span>
+          <span class="nt">&lt;span</span> <span class="na">aria-hidden=</span><span class="s">"true"</span><span class="nt">&gt;</span><span class="ni">&amp;times;</span><span class="nt">&lt;/span&gt;</span>
+        <span class="nt">&lt;/button&gt;</span>
+      <span class="nt">&lt;/div&gt;</span>
+    <span class="nt">&lt;/div&gt;</span>
+    <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"form-group row"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;label</span> <span class="na">for=</span><span class="s">"note_title"</span> <span class="na">class=</span><span class="s">"col-form-label col-md-4"</span><span class="nt">&gt;</span>Title<span class="nt">&lt;/label&gt;</span>
+      <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"col-md-8"</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"text"</span> <span class="na">id=</span><span class="s">"note_title"</span> <span class="na">v-model=</span><span class="s">"note.title"</span> <span class="na">class=</span><span class="s">"form-control"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;/div&gt;</span>
+    <span class="nt">&lt;/div&gt;</span>
+    <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"form-group row"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;label</span> <span class="na">for=</span><span class="s">"note_body"</span> <span class="na">class=</span><span class="s">"col-form-label col-md-4"</span><span class="nt">&gt;</span>Body<span class="nt">&lt;/label&gt;</span>
+      <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"col-md-8"</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"text"</span> <span class="na">id=</span><span class="s">"note_body"</span> <span class="na">v-model=</span><span class="s">"note.body"</span> <span class="na">class=</span><span class="s">"form-control"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;/div&gt;</span>
+    <span class="nt">&lt;/div&gt;</span>
+    <span class="nt">&lt;button</span> <span class="err">@</span><span class="na">click=</span><span class="s">"submit()"</span> <span class="na">class=</span><span class="s">"btn btn-primary btn-block"</span><span class="nt">&gt;</span>Submit<span class="nt">&lt;/button&gt;</span>
+  <span class="nt">&lt;/div&gt;</span>
+<span class="nt">&lt;/template&gt;</span>
+
+<span class="nt">&lt;script&gt;</span>
+<span class="k">export</span> <span class="k">default</span> <span class="p">{</span>
+  <span class="na">name</span><span class="p">:</span> <span class="dl">"</span><span class="s2">NoteForm</span><span class="dl">"</span><span class="p">,</span>
+  <span class="nx">data</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">{</span>
+      <span class="na">successMessage</span><span class="p">:</span> <span class="dl">""</span><span class="p">,</span>
+      <span class="na">errors</span><span class="p">:</span> <span class="p">[],</span>
+      <span class="na">note</span><span class="p">:</span> <span class="p">{</span>
+        <span class="na">title</span><span class="p">:</span> <span class="dl">""</span><span class="p">,</span>
+        <span class="na">body</span><span class="p">:</span> <span class="dl">""</span>
+      <span class="p">}</span>
+    <span class="p">};</span>
+  <span class="p">},</span>
+  <span class="na">methods</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nx">submit</span><span class="p">()</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">errors</span> <span class="o">=</span> <span class="p">[];</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">validation</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">note</span><span class="p">);</span>
+      <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">errors</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+      <span class="p">}</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">successMessage</span> <span class="o">=</span> <span class="dl">"</span><span class="s2">Note has been published</span><span class="dl">"</span><span class="p">;</span>
+    <span class="p">},</span>
+    <span class="nx">validation</span><span class="p">(</span><span class="nx">note</span><span class="p">)</span> <span class="p">{</span>
+      <span class="kd">let</span> <span class="nx">message</span> <span class="o">=</span> <span class="dl">""</span><span class="p">;</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nx">note</span><span class="p">.</span><span class="nx">title</span> <span class="o">==</span> <span class="dl">""</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">message</span> <span class="o">=</span> <span class="dl">"</span><span class="s2">Title can't be blank</span><span class="dl">"</span><span class="p">;</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">errors</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">message</span><span class="p">);</span>
+      <span class="p">}</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nx">note</span><span class="p">.</span><span class="nx">body</span> <span class="o">==</span> <span class="dl">""</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">message</span> <span class="o">=</span> <span class="dl">"</span><span class="s2">Body can't be blank</span><span class="dl">"</span><span class="p">;</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">errors</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">message</span><span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+<span class="nt">&lt;/script&gt;</span>
+</code></pre></div></div>
+
+<p>Lalu jalankan testnya kembali, maka kode testnya akan <em>passed</em> atau sukses.</p>
+
+<p>Sekarang waktunya refactoring!</p>
+
+<p>Pertama, mari kita buat komponen baru <code class="language-plaintext highlighter-rouge">alert-success</code> sebagai komponen yang menangani pesan suksesnya.</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">&lt;!-- filename: app/javascripts/alert/success.vue --&gt;</span>
+
+<span class="nt">&lt;template&gt;</span>
+  <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"alert-success"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;div</span> <span class="na">v-if=</span><span class="s">"message != ''"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"alert alert-success alert-dismissible fade show"</span> <span class="na">role=</span><span class="s">"alert"</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;span&gt;&lt;/span&gt;</span>
+        <span class="nt">&lt;button</span> <span class="na">type=</span><span class="s">"button"</span> <span class="na">class=</span><span class="s">"close"</span> <span class="na">data-dismiss=</span><span class="s">"alert"</span> <span class="na">aria-label=</span><span class="s">"Close"</span><span class="nt">&gt;</span>
+          <span class="nt">&lt;span</span> <span class="na">aria-hidden=</span><span class="s">"true"</span><span class="nt">&gt;</span><span class="ni">&amp;times;</span><span class="nt">&lt;/span&gt;</span>
+        <span class="nt">&lt;/button&gt;</span>
+      <span class="nt">&lt;/div&gt;</span>
+    <span class="nt">&lt;/div&gt;</span>
+  <span class="nt">&lt;/div&gt;</span>
+<span class="nt">&lt;/template&gt;</span>
+
+<span class="nt">&lt;script&gt;</span>
+<span class="k">export</span> <span class="k">default</span> <span class="p">{</span>
+  <span class="na">name</span><span class="p">:</span> <span class="dl">"</span><span class="s2">AlertSuccess</span><span class="dl">"</span><span class="p">,</span>
+  <span class="na">props</span><span class="p">:</span> <span class="p">{</span>
+    <span class="na">message</span><span class="p">:</span> <span class="nb">String</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+<span class="nt">&lt;/script&gt;</span>
+</code></pre></div></div>
+
+<p>Sekarang kita gunakan komponen ini di komponen <code class="language-plaintext highlighter-rouge">note-form</code>:</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;template&gt;</span>
+  <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"note-form"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;alert-success</span> <span class="na">:message=</span><span class="s">"successMessage"</span><span class="nt">&gt;&lt;/alert-success&gt;</span>
+    <span class="nt">&lt;div</span> <span class="na">v-if=</span><span class="s">"errors.length &gt; 0"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"alert alert-danger alert-dismissible fade show"</span> <span class="na">role=</span><span class="s">"alert"</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;li</span> <span class="na">v-for=</span><span class="s">"error of errors"</span> <span class="na">:key=</span><span class="s">"error"</span><span class="nt">&gt;&lt;/li&gt;</span>
+        <span class="nt">&lt;button</span> <span class="na">type=</span><span class="s">"button"</span> <span class="na">class=</span><span class="s">"close"</span> <span class="na">data-dismiss=</span><span class="s">"alert"</span> <span class="na">aria-label=</span><span class="s">"Close"</span><span class="nt">&gt;</span>
+          <span class="nt">&lt;span</span> <span class="na">aria-hidden=</span><span class="s">"true"</span><span class="nt">&gt;</span><span class="ni">&amp;times;</span><span class="nt">&lt;/span&gt;</span>
+        <span class="nt">&lt;/button&gt;</span>
+      <span class="nt">&lt;/div&gt;</span>
+    <span class="nt">&lt;/div&gt;</span>
+    <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"form-group row"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;label</span> <span class="na">for=</span><span class="s">"note_title"</span> <span class="na">class=</span><span class="s">"col-form-label col-md-4"</span><span class="nt">&gt;</span>Title<span class="nt">&lt;/label&gt;</span>
+      <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"col-md-8"</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"text"</span> <span class="na">id=</span><span class="s">"note_title"</span> <span class="na">v-model=</span><span class="s">"note.title"</span> <span class="na">class=</span><span class="s">"form-control"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;/div&gt;</span>
+    <span class="nt">&lt;/div&gt;</span>
+    <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"form-group row"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;label</span> <span class="na">for=</span><span class="s">"note_body"</span> <span class="na">class=</span><span class="s">"col-form-label col-md-4"</span><span class="nt">&gt;</span>Body<span class="nt">&lt;/label&gt;</span>
+      <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"col-md-8"</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"text"</span> <span class="na">id=</span><span class="s">"note_body"</span> <span class="na">v-model=</span><span class="s">"note.body"</span> <span class="na">class=</span><span class="s">"form-control"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;/div&gt;</span>
+    <span class="nt">&lt;/div&gt;</span>
+    <span class="nt">&lt;button</span> <span class="err">@</span><span class="na">click=</span><span class="s">"submit()"</span> <span class="na">class=</span><span class="s">"btn btn-primary btn-block"</span><span class="nt">&gt;</span>Submit<span class="nt">&lt;/button&gt;</span>
+  <span class="nt">&lt;/div&gt;</span>
+<span class="nt">&lt;/template&gt;</span>
+
+<span class="nt">&lt;script&gt;</span>
+<span class="k">import</span> <span class="nx">AlertSuccess</span> <span class="k">from</span> <span class="dl">"</span><span class="s2">alert/success.vue</span><span class="dl">"</span><span class="p">;</span>
+
+<span class="k">export</span> <span class="k">default</span> <span class="p">{</span>
+  <span class="na">name</span><span class="p">:</span> <span class="dl">"</span><span class="s2">NoteForm</span><span class="dl">"</span><span class="p">,</span>
+  <span class="nx">data</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">{</span>
+      <span class="na">successMessage</span><span class="p">:</span> <span class="dl">""</span><span class="p">,</span>
+      <span class="na">errors</span><span class="p">:</span> <span class="p">[],</span>
+      <span class="na">note</span><span class="p">:</span> <span class="p">{</span>
+        <span class="na">title</span><span class="p">:</span> <span class="dl">""</span><span class="p">,</span>
+        <span class="na">body</span><span class="p">:</span> <span class="dl">""</span>
+      <span class="p">}</span>
+    <span class="p">};</span>
+  <span class="p">},</span>
+  <span class="na">methods</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nx">submit</span><span class="p">()</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">errors</span> <span class="o">=</span> <span class="p">[];</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">validation</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">note</span><span class="p">);</span>
+      <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">errors</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+      <span class="p">}</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">successMessage</span> <span class="o">=</span> <span class="dl">"</span><span class="s2">Note has been published</span><span class="dl">"</span><span class="p">;</span>
+    <span class="p">},</span>
+    <span class="nx">validation</span><span class="p">(</span><span class="nx">note</span><span class="p">)</span> <span class="p">{</span>
+      <span class="kd">let</span> <span class="nx">message</span> <span class="o">=</span> <span class="dl">""</span><span class="p">;</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nx">note</span><span class="p">.</span><span class="nx">title</span> <span class="o">==</span> <span class="dl">""</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">message</span> <span class="o">=</span> <span class="dl">"</span><span class="s2">Title can't be blank</span><span class="dl">"</span><span class="p">;</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">errors</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">message</span><span class="p">);</span>
+      <span class="p">}</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nx">note</span><span class="p">.</span><span class="nx">body</span> <span class="o">==</span> <span class="dl">""</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">message</span> <span class="o">=</span> <span class="dl">"</span><span class="s2">Body can't be blank</span><span class="dl">"</span><span class="p">;</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">errors</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">message</span><span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">},</span>
+  <span class="na">components</span><span class="p">:</span> <span class="p">{</span> <span class="nx">AlertSuccess</span><span class="p">,</span> <span class="nx">AlertErrors</span> <span class="p">}</span>
+<span class="p">};</span>
+<span class="nt">&lt;/script&gt;</span>
+</code></pre></div></div>
+
+<p>Jalankan kode testnya lagi, dan kode testnya masih <em>passed</em>.</p>
+
+<p>Sekarang waktunya untuk implementasi konsep yang sama pada <em>error responsenya</em>.</p>
+
+<p>Kita buat komponen <code class="language-plaintext highlighter-rouge">alert-errors</code>:</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;template&gt;</span>
+  <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"alert-errors"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;div</span> <span class="na">v-if=</span><span class="s">"errors.length &gt; 0"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"alert alert-danger alert-dismissible fade show"</span> <span class="na">role=</span><span class="s">"alert"</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;li</span> <span class="na">v-for=</span><span class="s">"error of errors"</span> <span class="na">:key=</span><span class="s">"error"</span><span class="nt">&gt;&lt;/li&gt;</span>
+        <span class="nt">&lt;button</span> <span class="na">type=</span><span class="s">"button"</span> <span class="na">class=</span><span class="s">"close"</span> <span class="na">data-dismiss=</span><span class="s">"alert"</span> <span class="na">aria-label=</span><span class="s">"Close"</span><span class="nt">&gt;</span>
+          <span class="nt">&lt;span</span> <span class="na">aria-hidden=</span><span class="s">"true"</span><span class="nt">&gt;</span><span class="ni">&amp;times;</span><span class="nt">&lt;/span&gt;</span>
+        <span class="nt">&lt;/button&gt;</span>
+      <span class="nt">&lt;/div&gt;</span>
+    <span class="nt">&lt;/div&gt;</span>
+  <span class="nt">&lt;/div&gt;</span>
+<span class="nt">&lt;/template&gt;</span>
+
+<span class="nt">&lt;script&gt;</span>
+<span class="k">export</span> <span class="k">default</span> <span class="p">{</span>
+  <span class="na">name</span><span class="p">:</span> <span class="dl">"</span><span class="s2">AlertErrors</span><span class="dl">"</span><span class="p">,</span>
+  <span class="na">props</span><span class="p">:</span> <span class="p">{</span>
+    <span class="na">errors</span><span class="p">:</span> <span class="nb">Array</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+<span class="nt">&lt;/script&gt;</span>
+</code></pre></div></div>
+
+<p>Sekarang, kita gunakan komponen ini di <code class="language-plaintext highlighter-rouge">note-form</code>:</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;template&gt;</span>
+  <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"note-form"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;alert-success</span> <span class="na">:message=</span><span class="s">"successMessage"</span><span class="nt">&gt;&lt;/alert-success&gt;</span>
+    <span class="nt">&lt;alert-errors</span> <span class="na">:errors=</span><span class="s">"errors"</span><span class="nt">&gt;&lt;/alert-errors&gt;</span>
+    <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"form-group row"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;label</span> <span class="na">for=</span><span class="s">"note_title"</span> <span class="na">class=</span><span class="s">"col-form-label col-md-4"</span><span class="nt">&gt;</span>Title<span class="nt">&lt;/label&gt;</span>
+      <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"col-md-8"</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"text"</span> <span class="na">id=</span><span class="s">"note_title"</span> <span class="na">v-model=</span><span class="s">"note.title"</span> <span class="na">class=</span><span class="s">"form-control"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;/div&gt;</span>
+    <span class="nt">&lt;/div&gt;</span>
+    <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"form-group row"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;label</span> <span class="na">for=</span><span class="s">"note_body"</span> <span class="na">class=</span><span class="s">"col-form-label col-md-4"</span><span class="nt">&gt;</span>Body<span class="nt">&lt;/label&gt;</span>
+      <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"col-md-8"</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"text"</span> <span class="na">id=</span><span class="s">"note_body"</span> <span class="na">v-model=</span><span class="s">"note.body"</span> <span class="na">class=</span><span class="s">"form-control"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;/div&gt;</span>
+    <span class="nt">&lt;/div&gt;</span>
+    <span class="nt">&lt;button</span> <span class="err">@</span><span class="na">click=</span><span class="s">"submit()"</span> <span class="na">class=</span><span class="s">"btn btn-primary btn-block"</span><span class="nt">&gt;</span>Submit<span class="nt">&lt;/button&gt;</span>
+  <span class="nt">&lt;/div&gt;</span>
+<span class="nt">&lt;/template&gt;</span>
+
+<span class="nt">&lt;script&gt;</span>
+<span class="k">import</span> <span class="nx">AlertSuccess</span> <span class="k">from</span> <span class="dl">"</span><span class="s2">alert/success.vue</span><span class="dl">"</span><span class="p">;</span>
+<span class="k">import</span> <span class="nx">AlertErrors</span> <span class="k">from</span> <span class="dl">"</span><span class="s2">alert/errors.vue</span><span class="dl">"</span><span class="p">;</span>
+
+<span class="k">export</span> <span class="k">default</span> <span class="p">{</span>
+  <span class="na">name</span><span class="p">:</span> <span class="dl">"</span><span class="s2">NoteForm</span><span class="dl">"</span><span class="p">,</span>
+  <span class="nx">data</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">{</span>
+      <span class="na">successMessage</span><span class="p">:</span> <span class="dl">""</span><span class="p">,</span>
+      <span class="na">errors</span><span class="p">:</span> <span class="p">[],</span>
+      <span class="na">note</span><span class="p">:</span> <span class="p">{</span>
+        <span class="na">title</span><span class="p">:</span> <span class="dl">""</span><span class="p">,</span>
+        <span class="na">body</span><span class="p">:</span> <span class="dl">""</span>
+      <span class="p">}</span>
+    <span class="p">};</span>
+  <span class="p">},</span>
+  <span class="na">methods</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nx">submit</span><span class="p">()</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">errors</span> <span class="o">=</span> <span class="p">[];</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">validation</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">note</span><span class="p">);</span>
+      <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">errors</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+      <span class="p">}</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">successMessage</span> <span class="o">=</span> <span class="dl">"</span><span class="s2">Note has been published</span><span class="dl">"</span><span class="p">;</span>
+    <span class="p">},</span>
+    <span class="nx">validation</span><span class="p">(</span><span class="nx">note</span><span class="p">)</span> <span class="p">{</span>
+      <span class="kd">let</span> <span class="nx">message</span> <span class="o">=</span> <span class="dl">""</span><span class="p">;</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nx">note</span><span class="p">.</span><span class="nx">title</span> <span class="o">==</span> <span class="dl">""</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">message</span> <span class="o">=</span> <span class="dl">"</span><span class="s2">Title can't be blank</span><span class="dl">"</span><span class="p">;</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">errors</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">message</span><span class="p">);</span>
+      <span class="p">}</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nx">note</span><span class="p">.</span><span class="nx">body</span> <span class="o">==</span> <span class="dl">""</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">message</span> <span class="o">=</span> <span class="dl">"</span><span class="s2">Body can't be blank</span><span class="dl">"</span><span class="p">;</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">errors</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">message</span><span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">},</span>
+  <span class="na">components</span><span class="p">:</span> <span class="p">{</span> <span class="nx">AlertSuccess</span><span class="p">,</span> <span class="nx">AlertErrors</span> <span class="p">}</span>
+<span class="p">};</span>
+<span class="nt">&lt;/script&gt;</span>
+</code></pre></div></div>
+
+<p>Jalankan testnya lagi, dan hasilnya masih <em>passed</em>.</p>
+
+<hr />
+<p>Melakukan dekomposisi pada komponen yang besar menjadi komponen-komponen kecil yang independen selain memberikan kode lebih mudah dibaca, itu juga memberikan kodenya kita lebih <em>reuseable</em>. Komponen-komponen kecil tadi bisa digunakan di komponen lain yang membutuhkannya.</p>
+
+<p>Untuk kode sumbernya anda dapat temukan disini: <a href="https://github.com/sugar-for-pirate-king/refactoring-vue">sugar-for-pirate-king/refactoring-vue</a></p>
+
+<p>Sekian tulisan kali ini, semoga dapat bermamfaat bagi pembaca skalian.</p>
+:ET

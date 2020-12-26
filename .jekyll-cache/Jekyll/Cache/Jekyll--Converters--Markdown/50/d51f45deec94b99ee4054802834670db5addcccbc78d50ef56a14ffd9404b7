@@ -1,0 +1,126 @@
+I"&&<p>Setelah lama gk nulis, akhirnya ada kesempatan lagi ~</p>
+
+<p>Pada kali ini mau coba ngobrolin terkait security atau keamanan.</p>
+
+<p>Tulisan ini terinspirasi dari salah satu website <a href="https://1password.com/">https://1password.com/</a>. Website ini adalah aplikasi untuk manajemen password.</p>
+
+<p>Jadi jika lu suka mengganti-ganti password alasan keamanan, dan lumayan capek inget-inget passwordnya, website ini bisa jadi pilihan.</p>
+
+<p>Bermula dari pertama kali gw coba login dan masuk ke dashboardnya, url yang ditampilkannya kira-kira gini:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>https://my.1password.com/vaults/TavH07LQEUCDlwdgIsEqQ8nZyGTcSMe7w/allitems/aXdjKycQqK3Z8mlFwAvRFAJJop8CdSjfp
+</code></pre></div></div>
+
+<p>Tenang, untuk random stringnya di urlnya gw generate sendiri kok :)</p>
+
+<p>Akhirnya coba-coba lihat network-nya, dan ternyata data-data yang dikirim lewat api-nya juga ikut di encrypt. Cukup menarik.</p>
+
+<hr />
+
+<p>Dari kasus ini, tertarik coba implementasi konsep ini di Rails. Konsep ini bisa di implementasi untuk halaman-halaman atau endpoint-endpoint api
+yang bersifat rahasia. Atau halaman yang hanya dipakai oleh tim internal, contohnya umumnya seperti halaman Admin.</p>
+
+<p>Biasanya admin hanya diakses oleh tim internal, kita tidak ingin ada user atau guess yang bisa akses admin. Jadi mari kita coba implementasi saja.</p>
+
+<p>Tujuannya adalah kita ingin tetap bisa menggunakan module <code class="language-plaintext highlighter-rouge">admin</code> di kode Ruby-nya. Karna lucu jika kita punya module dengan nama <code class="language-plaintext highlighter-rouge">aXdjKycQqK3Z8mlFw</code>. Jadi intinya bagaimana
+kita menggubah ulrnya tanpa merubah codebase yang udah ada (jika dengan di kode turunan).</p>
+
+<p>Kalo lu pake administrate atau develop admin sendiri, kira-kira routesnya begini:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">namespace</span> <span class="ss">:admin</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:dashboards</span><span class="p">,</span> <span class="ss">only: </span><span class="sx">%i[index]</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$&gt; rails routes | grep admin_dashboard
+   admin_dashboards GET    /admin/dashboards(.:format)      admin/dashboards#index
+</code></pre></div></div>
+
+<p>Sekarang coba kita hide route adminnya dengan menggantinya dengan random string. Random stringnya bisa digenerate pake module <code class="language-plaintext highlighter-rouge">SecureRandom</code>.</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="vg">$&gt;</span> <span class="n">irb</span>
+<span class="n">irb</span><span class="p">(</span><span class="n">main</span><span class="p">):</span><span class="mo">001</span><span class="p">:</span><span class="mi">0</span><span class="o">&gt;</span> <span class="nb">require</span> <span class="s1">'securerandom'</span>
+<span class="o">=&gt;</span> <span class="kp">true</span>
+<span class="n">irb</span><span class="p">(</span><span class="n">main</span><span class="p">):</span><span class="mo">002</span><span class="p">:</span><span class="mi">0</span><span class="o">&gt;</span> <span class="no">SecureRandom</span><span class="p">.</span><span class="nf">urlsafe_base64</span>
+<span class="o">=&gt;</span> <span class="s2">"2J-PxHMzm0CiggrRZIcreg"</span>
+</code></pre></div></div>
+
+<p>Sekarang ganti routesnya jadi gini:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">scope</span> <span class="ss">module: :admin</span><span class="p">,</span> <span class="ss">path: </span><span class="s1">'2J-PxHMzm0CiggrRZIcreg'</span><span class="p">,</span> <span class="ss">as: :admin</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:dashboards</span><span class="p">,</span> <span class="ss">only: </span><span class="sx">%i[index]</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Maka hasilnya akan begini:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$&gt; rails routes | grep admin_dashboard
+   admin_dashboards GET    /2J-PxHMzm0CiggrRZIcreg/dashboards(.:format)     admin/dashboards#index
+</code></pre></div></div>
+
+<p>Goalsnya tercapai. urlnya berubah, namun nama modul dan nama pathnya masih sama.</p>
+
+<p>Maka kita bisa pastikan kita tidak perlu ganti kode-kode yang lain, fiturnya yang di dalam module <code class="language-plaintext highlighter-rouge">admin</code> masih bisa dipakai dengan semestinya.</p>
+
+<p>Sekarang usernya tidak bisa akses /admin. Karna akan mendapat error 404.</p>
+
+<p>Jika lu pake active admin, kasusnya beda dikit, karna routesnya begini:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="no">ActiveAdmin</span><span class="p">.</span><span class="nf">routes</span><span class="p">(</span><span class="nb">self</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Untuk kasus ini bisa diubah dengan tambahin prefixnya aja:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">scope</span> <span class="ss">path: </span><span class="s1">'2J-PxHMzm0CiggrRZIcreg'</span> <span class="k">do</span>
+  <span class="no">ActiveAdmin</span><span class="p">.</span><span class="nf">routes</span><span class="p">(</span><span class="nb">self</span><span class="p">)</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Jadinya adminnya gk bisa diakses begini: /admin, tapi harus begini: /2J-PxHMzm0CiggrRZIcreg/admin.</p>
+
+<p>Maka, kasus ini juga tujuannya tercapai kode-kode yang relatif ke active admin tidak perlu ada changes lagi, fitur akan tetep bisa dipakai dengan semestinya.</p>
+
+<hr />
+
+<p>Sebelum mengakhiri tulisan, buat temen-temen yang belum terlalu kenal dengan kode <code class="language-plaintext highlighter-rouge">scope</code> mari kita ngobrol dikit.</p>
+
+<p>Jadi <code class="language-plaintext highlighter-rouge">scope</code> adalah salah satu helper yang bisa dipake di <code class="language-plaintext highlighter-rouge">routes.rb</code>. Dibandingkan dengan <code class="language-plaintext highlighter-rouge">namespace</code>, scope lebih flexible.</p>
+
+<p>Jadi kalo di namespace kita dapet gini:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">namespace</span> <span class="ss">:admin</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:dashboards</span><span class="p">,</span> <span class="ss">only: </span><span class="sx">%i[index]</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$&gt; rails routes | grep admin_dashboard
+   admin_dashboards GET    /admin/dashboards(.:format)      admin/dashboards#index
+</code></pre></div></div>
+
+<p>Kalo di scope kita bisa bikin jadi gini untuk mendapatkan hasil yang sama:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">scope</span> <span class="ss">module: :admin</span><span class="p">,</span> <span class="ss">path: :admin</span><span class="p">,</span> <span class="ss">as: :admin</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:dashboards</span><span class="p">,</span> <span class="ss">only: </span><span class="sx">%i[index]</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$&gt; rails routes | grep admin_dashboard
+   admin_dashboards GET    /admin/dashboards(.:format)      admin/dashboards#index
+</code></pre></div></div>
+
+<p>Didalam scope ini kita mengenal tiga key <code class="language-plaintext highlighter-rouge">module:</code>, <code class="language-plaintext highlighter-rouge">path:</code>, dan <code class="language-plaintext highlighter-rouge">as:</code>. <code class="language-plaintext highlighter-rouge">module:</code> untuk define modulenya, <code class="language-plaintext highlighter-rouge">path:</code> untuk define url pathnya (prefix) dan <code class="language-plaintext highlighter-rouge">as:</code> untuk mendefine helpernya (prefix).</p>
+
+<p>Tapi dalam kasus ini <code class="language-plaintext highlighter-rouge">path:</code> dan <code class="language-plaintext highlighter-rouge">as:</code>-nya sama, rails punya versi ringkasnya:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">scope</span> <span class="ss">:admin</span><span class="p">,</span> <span class="ss">module: :admin</span><span class="p">,</span> <span class="ss">as: :admin</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:dashboards</span><span class="p">,</span> <span class="ss">only: </span><span class="sx">%i[index]</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Kode ini akan tetap menghasilkan routes yang sama. Untuk lebih jelas dan detailnya bisa ke dokumentasinya langsung <a href="https://api.rubyonrails.org/v5.1/classes/ActionDispatch/Routing/Mapper/Scoping.html#method-i-scope">disini</a>.</p>
+
+<hr />
+
+<p>Sekian saja tulisan kali ini, terima kasih telah membaca yaa</p>
+
+<p>Happy hacking~~</p>
+:ET

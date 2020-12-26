@@ -1,0 +1,95 @@
+I"Ä#<p>Karna ada pekerjaan yang berelasi dengan topik ini, jadi coba-coba design api wrapper. Karena sebelumnya di kantor menggunakan arsitektur <a href="https://github.com/moneyforward/mf_cloud-invoice-ruby">ini</a>. Jadi, desain yang saya buat juga banyak terinspirasi dari sana.</p>
+
+<p>Sebelumnya mungkin untuk anda yang belum tahu apa itu API Wrapper. API Wrapper adalah sebuah design pattern yang mungkin dikenal dengan nama <a href="https://en.wikipedia.org/wiki/Adapter_pattern">Adapter pattern</a>.</p>
+
+<p>Mudahnya kita membuat sebuah <em>class interface</em> terhadap sebuah third party yang kita gunakan pada sistem. Misalnya pada Ruby, jika kita ingin mengambil daftar artikel dari sebuah eksternal aplikasi daripada kita melakukannya dengan cara seperti ini:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">response</span> <span class="o">=</span> <span class="no">Faraday</span><span class="p">.</span><span class="nf">get</span> <span class="s1">'http://wrapper.com/articles'</span>
+<span class="n">articles</span> <span class="o">=</span> <span class="n">response</span><span class="p">.</span><span class="nf">body</span> 
+<span class="n">articles</span> <span class="c1">#&gt; [{ id: 1, title: 'The title' }]</span>
+</code></pre></div></div>
+
+<p>Lebih baik kita membuat interface pada <em>wrapper.com</em> dan mengambil artikelnya seperti ini:</p>
+
+<div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">client</span> <span class="o">=</span> <span class="no">Wrapper</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span><span class="p">()</span>
+<span class="n">articles</span> <span class="o">=</span> <span class="n">client</span><span class="p">.</span><span class="nf">articles</span><span class="p">.</span><span class="nf">all</span>
+<span class="n">articles</span> <span class="c1">#&gt; [{ id: 1, title: 'The title' }]</span>
+</code></pre></div></div>
+
+<p>Pada tulisan ini saya akan fokus bagaimana mendesain api wrapper yang punya konsistensi yang baik dan mudah dimengerti. Goalsnya adalah:</p>
+<ul>
+  <li>Mengimplementasikan CRUD (create, read, update, delete).</li>
+  <li>Bekerja dengan baik dengan nested resources.</li>
+</ul>
+
+<p>Mari kita mulai dengan CRUD sebuah posts.</p>
+
+<ul>
+  <li>
+    <p>Mendapatkan daftar postingan</p>
+
+    <div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">client</span> <span class="o">=</span> <span class="no">Wrapper</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">posts</span> <span class="o">=</span> <span class="n">client</span><span class="p">.</span><span class="nf">posts</span><span class="p">.</span><span class="nf">all</span>
+<span class="n">posts</span><span class="p">.</span><span class="nf">to_json</span> <span class="c1">#&gt; [{ id: 1, title: 'The title' }]</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>Membuat postingan baru</p>
+
+    <div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">client</span> <span class="o">=</span> <span class="no">Wrapper</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">post</span> <span class="o">=</span> <span class="n">client</span><span class="p">.</span><span class="nf">posts</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">title: </span><span class="s1">'The second post'</span><span class="p">)</span>
+<span class="n">post</span><span class="p">.</span><span class="nf">to_json</span> <span class="c1">#&gt; { id: 2, title: 'The second post' }</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>Melihat postingan dari spesific id</p>
+
+    <div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">client</span> <span class="o">=</span> <span class="no">Wrapper</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">post</span> <span class="o">=</span> <span class="n">client</span><span class="p">.</span><span class="nf">posts</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">post</span><span class="p">.</span><span class="nf">to_json</span> <span class="c1">#&gt; { id: 2, title: 'The second post' }</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>Mengupdate postingan dari spesific id</p>
+
+    <div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">client</span> <span class="o">=</span> <span class="no">Wrapper</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">post</span> <span class="o">=</span> <span class="n">client</span><span class="p">.</span><span class="nf">posts</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">post</span><span class="p">.</span><span class="nf">update</span><span class="p">({</span><span class="ss">title: </span><span class="s1">'The updated title'</span><span class="p">})</span> <span class="c1">#&gt; </span>
+<span class="n">post</span><span class="p">.</span><span class="nf">to_json</span> <span class="c1">#&gt; { id: 2, title: 'The updated title' }</span>
+</code></pre></div>    </div>
+  </li>
+  <li>Menghapus postingan dari spesific  id
+    <div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">client</span> <span class="o">=</span> <span class="no">Wrapper</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">post</span> <span class="o">=</span> <span class="n">client</span><span class="p">.</span><span class="nf">posts</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">post</span><span class="p">.</span><span class="nf">destroy</span> <span class="c1">#&gt; { id: 2, title: 'The updated title' }</span>
+</code></pre></div>    </div>
+  </li>
+  <li>Bekerja dengan baik dengan nested resource, dan untuk <em>nested resources</em>-nya bisa dibuat seperti  ini, misalnya kita mengambil daftar komentar dari spesific postingan
+    <div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">client</span> <span class="o">=</span> <span class="no">Wrapper</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">post</span> <span class="o">=</span> <span class="n">client</span><span class="p">.</span><span class="nf">posts</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">comments</span> <span class="o">=</span> <span class="n">post</span><span class="p">.</span><span class="nf">comments</span> 
+<span class="n">comments</span><span class="p">.</span><span class="nf">to_json</span> <span class="c1">#&gt; [{id: '1', user_id: 2, body: 'this is sample comment' }]</span>
+</code></pre></div>    </div>
+    <p>dan jika kita ingin menggambil comment dari spesific idnya kita bisa melakukannya dengan cara ini:</p>
+    <div class="language-rb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">client</span> <span class="o">=</span> <span class="no">Wrapper</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">comment</span> <span class="o">=</span> <span class="n">client</span><span class="p">.</span><span class="nf">comments</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">comment</span><span class="p">.</span><span class="nf">to_json</span> <span class="c1">#&gt; {id: '1', user_id: 2, body: 'this is sample comment' }</span>
+</code></pre></div>    </div>
+  </li>
+</ul>
+
+<p>Dengan memamfaatkan konsep dari <em>chaining method</em> saya kira kita dapat meningkatkan <em>readability</em>.</p>
+
+<p>Untuk arsitekturnya kira-kira saya mendesainya seperti ini:</p>
+
+<p><img src="/assets/api_wrapper.png" alt="Api Wrapper" /></p>
+
+<p>Maaf untuk kualitas gambarnya, entah kenapa balsamiq belum support export by svg -_-</p>
+
+<p>Sebagai catatan, kotak yang berwarna pink adalah kelas, sedangkan yang berwarna biru adalah modul.</p>
+
+<hr />
+<p>Sekian saja untuk tulisan ini, jika ingin melihat kodenya bisa ditemukan <a href="https://github.com/philiplambok/jsonplaceholder_api">disini</a>.</p>
+
+<p>Happy hacking ~</p>
+:ET
