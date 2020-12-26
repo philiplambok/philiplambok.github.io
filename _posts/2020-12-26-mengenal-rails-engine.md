@@ -64,6 +64,8 @@ Dengan rails engine, maka aplikasi rails menjadi terisolasi dan tidak menggangu 
 
 Pola ini juga ada yang menyebutnya sebagai *Component-Based Rails Application*, jika anda tertarik lebih lanjut anda bisa membaca bukunya disini: [https://cbra.info/](https://cbra.info/). Buku itu menjelaskan bagaimana kita membuat dan merancang desain komponen hingga *technical things*-nya seperti bagaimana proses migrasi database dan strategi deploymentnya.
 
+Jika ingin liat sample projeknya bisa disini yaa: [https://github.com/sugar-for-pirate-king/rails-engines](https://github.com/sugar-for-pirate-king/rails-engines)
+
 ---
 
 Sepertinya cukup sampai sini aja tulisan kali ini,
