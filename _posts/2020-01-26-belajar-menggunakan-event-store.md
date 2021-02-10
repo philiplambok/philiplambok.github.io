@@ -63,7 +63,6 @@ require 'rails_helper'
 RSpec.describe "Create new user", type: :request do
   it 'creates expected user' do
     post '/api/users', params: { user: { email: 'pquest@gmail.com' } }
-    binding.pry
     expect(json_response['email']).to eq 'pquest@gmail.com'
     user = User.find_by(email: 'pquest@gmail.com')
     expect(user).to be_inactive
