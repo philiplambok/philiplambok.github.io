@@ -16,7 +16,7 @@
 title: Philip Lambok's slice of life
 email: philiplambok@gmail.com
 description: >- # this means to ignore newlines until "baseurl:"
-  Pemrogram Ruby dan Javascript
+  Doing full-stack with Ruby & Javascript
 baseurl: "/" # the subpath of your site, e.g. /blog
 url: "philiplambok.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: philiplambok
