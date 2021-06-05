@@ -17,3 +17,6 @@ Kadang-kadang saya juga suka membuat powerpoint, beberapa diantaranya:
 - Real-time application in Rails
   <sup>[[1](https://speakerdeck.com/philiplambok/real-time-application-in-rails)]</sup>
   <sup>[[2](https://docs.google.com/presentation/d/1-W8GPHLA8UDjAG1DGE5rVtuD6ePqMvS-oMvQxv74A2U/edit?usp=sharing)]</sup>
+
+- Reactive application in Rails
+  <sup>[[1](https://speakerdeck.com/philiplambok/reactive-application-in-rails)]</sup>
