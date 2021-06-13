@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "TIL: ActiveRecord::Store"
-date:   2021-05-22 10:10:00 +0700
+date:   2021-04-22 10:10:00 +0700
 categories: rails, active-record
 comments: true
 published: true
