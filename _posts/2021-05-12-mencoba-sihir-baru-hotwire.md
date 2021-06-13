@@ -271,7 +271,7 @@ Mungkin anda bertanya, kenapa perlu tag `turbo_frame_tag dom_id(@chat)` di file 
 
 Hasil masih akan tetap sama.
 
-### Membuat fitur delete
+## Membuat fitur delete
 
 Fitur selanjutnya adalah fitur delete. Kita mulai dari update viewnya:
 
@@ -321,7 +321,7 @@ Done, and it's works!
 
 Secara konsep mirip saat `create`, perbedannya hanya di action turbo streamnya saja, kalo pada `create` kita pake `append` kalo pada `destroy` kita pake `remove`. 
 
-### Improvement
+## Improvement
 
 Kalo liat pada demo aplikasi yang pertama kali mungkin anda sadar kita ada fitur untuk memberikan pesan "No Chats", bisa liat lagi:
 
