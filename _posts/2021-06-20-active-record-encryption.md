@@ -2,7 +2,7 @@
 layout: post
 title:  "Active Record Encryption"
 date:   2021-06-20 10:10:00 +0700
-categories: rails, hotwire
+categories: rails, encryption
 comments: true
 published: true
 ---
