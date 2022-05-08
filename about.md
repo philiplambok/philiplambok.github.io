@@ -4,24 +4,12 @@ title: About
 permalink: /about/
 ---
 
-Hi, selamat datang di blog sederhana ini.
+Hello Everyone!
 
-Perkenalkan, nama saya Philip Lambok.
+Welcome to my blog, it’s the place where I share my ideas, something that I learned, and something that probably you don’t hate.
 
-Saat ini saya bekerja sebagai programmer di [mekari.com](https://mekari.com/) yang kesehariannya dihabiskan untuk menulis kode Ruby dan Javascript.
+Currently, I'm a Ruby programmer at [Mekari](https://mekari.com/), assigned to their financial service team. I enjoy talking and discussing software reliability, maintainability, and how engineers collaborate to make software in fun ways.
 
-Blog ini ditunjukan sebagai media berbagi saya saja, jadi kebayakan yang saya tulis hanyalah opini-opini saya atau topik-topik yang saya ketahui atau yang menarik bagi saya.
+If you found any interest in my articles, feel free to comment on the blog post or send me an email if you want. Here’s my email: philiplambok@gmail.com.
 
-Jadi, jika anda memiliki saran atau kritik bisa langsung komentar ke tulisan terkait atau lemparkan ke surat elektronik saya di _philiplambok@gmail.com_.
-
-Anda juga bisa _request_ tulisan atau topik-topik tertentu di [repository](https://github.com/philiplambok/philiplambok.github.io) saya dengan menambahkan isu baru disana.
-
-Saya kadang juga suka bakar waktu dengan baca buku atau bermain _competitive programing_, temui saya disini yoo:
-
-- [goodreads.com/philip_lambok](https://www.goodreads.com/philip_lambok)
-- [leetcode.com/philiplambok/](https://leetcode.com/philiplambok/)
-- [hackerrank.com/philiplambok](https://www.hackerrank.com/philiplambok)
-
-Semoga tulisan-tulisan saya dapat bermamfaat bagi pembaca skalian.
-
-Terima kasih.
+Enjoy reading!
