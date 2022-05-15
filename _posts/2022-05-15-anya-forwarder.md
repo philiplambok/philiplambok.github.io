@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "New open source app to manage HTTP callbacks"
+title:  "New open-source app to manage HTTP callbacks"
 date:   2022-05-15 17:11:00 +0700
 categories: http-callbacks, rails, hotwire
 comments: true
