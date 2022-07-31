@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Building table with checkbox with Rails Hotwire"
+title:  "Building table with checkboxes with Rails Hotwire"
 date:   2022-07-31 11:14:00 +0700
 categories: rails, hotwire, dynamic-form
 comments: true
