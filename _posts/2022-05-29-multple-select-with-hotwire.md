@@ -133,8 +133,9 @@ class AdminsController < ApplicationController
 
   def destroy
     @admins = Admin.where(id: params[:ids])
-    flash[:success] = "Successfully deleted #{@admins.size} records"
+    deleted_records = @admins.size
     @admins.delete_all
+    flash[:success] = "Successfully deleted #{deleted_records} records"
     redirect_to admins_index_path
   end
 end
