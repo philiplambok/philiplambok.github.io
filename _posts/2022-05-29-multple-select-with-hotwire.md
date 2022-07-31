@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Building dynamic table actions with Rails Hotwire"
+title:  "Building multiple select in table with Rails Hotwire"
 date:   2022-07-31 11:14:00 +0700
 categories: rails, hotwire, dynamic-form
 comments: true
