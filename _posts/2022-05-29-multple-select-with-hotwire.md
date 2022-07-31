@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Building multiple select in table with Rails Hotwire"
+title:  "Building table with checkbox with Rails Hotwire"
 date:   2022-07-31 11:14:00 +0700
 categories: rails, hotwire, dynamic-form
 comments: true
@@ -9,7 +9,7 @@ published: true
 
 Currently, I’m doing [some experiments](https://github.com/philiplambok/experiments) with Hotwire. 
 
-One of my experiments is allowing users to select multiple records in one table, and do the same action to that selected records. 
+One of my experiments is allowing users to select multiple records with checkbox in one table, and do the same action to that selected records. 
 
 Here’s the sample feature:
 
