@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Bootstrap Offcanvas Implementation in Rails Hotwire"
-date:   2022-07-31 11:14:00 +0700
+date:   2022-08-14 11:14:00 +0700
 categories: rails, hotwire, dynamic-form
 comments: true
 published: true
