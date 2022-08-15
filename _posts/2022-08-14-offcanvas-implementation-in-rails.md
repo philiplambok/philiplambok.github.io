@@ -32,7 +32,7 @@ So, how do we implement this? you can see this sequence:
 
 Here's the view looks like:
 
-```html
+```
 <%# /app/views/products/index.html.erb %>
 <div class="row">
   <div class="col-md-6">
@@ -72,7 +72,7 @@ Here's the view looks like:
 </div>
 ```
 
-```html
+```
 <%# app/views/products/_product.html.erb %>
  <tr id="<%= dom_id(product) %>">
   <td>
@@ -122,8 +122,8 @@ class ProductsController < ApplicationController
 end
 ```
 
-```html
-<%# app/views/products/update.turbo_stream.erb
+```
+<%# app/views/products/update.turbo_stream.erb %>
 <%= turbo_stream.replace(dom_id(@product)) do %>
   <%= render @product %>
 <% end %>
@@ -144,7 +144,98 @@ Here's the sample response
 </template></turbo-stream>
 ```
 
-Done!
+Next, we will handle the error submissions. We will show the error message inside the Canvas.
+
+![error-canvas.gif](/assets/error-canvas.gif)
+
+To do that, first, we need to add the validations inside the Product modal.
+
+```rb
+# app/models/product.rb
+class Product < ApplicationRecord
+  validates :name, presence: true
+  validates :amount, presence: true
+end
+```
+
+Then, we need to update the server controller, to handle the new validations:
+
+```rb
+# app/controllers/products_controller.rb
+class ProductsController < ApplicationController
+  # ...
+  def update
+    @product = Product.find params[:id]
+    @product.update!(product_params)
+    respond_to do |format|
+      format.turbo_stream
+    end
+  rescue ActiveRecord::RecordInvalid => e
+    @error = e
+    render status: :unprocessable_entity
+  end
+  # ...
+end 
+```
+
+```
+<%# app/views/update.turbo_stream.erb %>
+<% if @error.present? %>
+  <%= turbo_stream.update(dom_id(@product, :error)) do %>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <span><%= @error %></span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% end %>
+<% else %>
+  <%= turbo_stream.replace(dom_id(@product)) do %>
+    <%= render @product %>
+  <% end %>
+<% end %>
+```
+
+When update failed, we respond with a 422 status code, and inside the response body we return the turbo_stream update component to update a DOM that we already reserved in the view. That DOM is reserved to show the alert error message.
+
+Here's the updated view code:
+
+```
+<%# app/views/products/index.html.erb %>
+<div class="offcanvas-body">
+  <div id="<%= dom_id(product, :error) %>"></div>
+  <%= form_with(model: product, data: { action: 'turbo:submit-end->canvas#hide' }) do |form| %>
+    <div class="mb-3">
+      <%= form.label :name, class: 'form-label' %>
+      <%= form.text_field :name, class: 'form-control', value: product.name %>
+    </div>
+    <div class="mb-3">
+      <%= form.label :amount, class: 'form-label' %>
+      <%= form.number_field :amount, class: 'form-control', value: product.amount %>
+    </div>
+    <%= form.submit 'Save', class: 'btn btn-link m-0 p-0'  %>
+  <% end %>
+</div>
+```
+
+We create a blank `<div id="<%= dom_id(product, :error) %>"></div>` that we will use to show the bootstrap alert component to show the error message to the customer.
+
+Then, we also need to update our stimulus controller to prevent closing the canvas model when the response was failed due to validations:
+
+```js
+// app/controllers/canvas_controller.rb
+import { Controller } from "@hotwired/stimulus"
+
+export default class extends Controller {
+  static targets = ['closeBtn']
+
+  hide(event) {
+    if(event.detail.success) {
+      this.closeBtnTarget.click()
+    }
+  }
+}
+```
+
+Done, now the error handling working as we expect.
 
 If you want to see the full of source code, you can see it in [this repository](https://github.com/philiplambok/experiments).
 
