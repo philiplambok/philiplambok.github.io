@@ -93,7 +93,7 @@ class ProductsController < ApplicationController
 end
 ```
  
-Finally, we successfully created the money field feature for our application.
+Finally, we successfully created the money field feature for [our application](https://experiments-rails7.herokuapp.com/products).
 
 The MoneyController is not production used, but feel free to copy and paste the function to the production codebase.
 
