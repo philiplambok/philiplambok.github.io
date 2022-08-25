@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Money field with Stimulus.js"
-date:   2022-08-17 11:14:00 +0700
+date:   2022-08-17 09:14:00 +0700
 categories: rails, stimulus, money-field
 comments: true
 published: true
