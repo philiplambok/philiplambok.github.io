@@ -9,7 +9,8 @@ published: true
 
 Catatan-catatan dari sebuah buku yang berjudul [Ikigai](https://www.goodreads.com/book/show/40534545-ikigai). Buku yang mengajarkan tentang bagaimana cara kita agar memiliki umur yang panjang.
 
-- 80% rule, secara biologis makan sebelum kenyang baik untuk jangka panjang kehidupan.
+- Ikigai: "Berbahagia dengan tetap menyibukkan diri".
+- 80% *rule*, secara biologis makan sebelum kenyang baik untuk jangka panjang kehidupan.
 - Pikiran aktif, tubuh awet muda, ransang otak dengan informasi baru, atau aktifitas intelektual, berfikir positif.
 - Komunitas, memelihara pertemanan seperti orang" okinawa.
 - Stress dapat menyebabkan sel" menua sebelum waktunya (dari penelitian). Efek lain: insomnia, darah tinggi, mudah marah dan kegelisahan. Harus bisa handle stress yang tinggi untuk menghindari penuaan.
@@ -94,7 +95,7 @@ Catatan-catatan dari sebuah buku yang berjudul [Ikigai](https://www.goodreads.co
 - Jika hanya memiliki satu gaji, anda mungkin tidak punya apa-apa lagi kalau bos anda dalam posisi rapuh.
 - Bertaruhlah secara konservatif di bidang tertentu, tetapi ambilah resiko kecil di tempat lain.
 - Lebih kuat saat menghadapi pukulan, memperbaiki gaya hidup dan tetap fokus pada *ikigai* kita.
-- Aturan *ikigai*:
+- 10 aturan *ikigai*:
     1. Terus aktif, jangan pensiun.
     2. Perlahan saja.
     3. Jangan penuhi perutmu
@@ -102,8 +103,9 @@ Catatan-catatan dari sebuah buku yang berjudul [Ikigai](https://www.goodreads.co
     5. Bugar untuk ulang tahunmu yang akan datang.
     6. Senyumlah.
     7. Berhubungan kembali dengan alam.
-    8. Hiduplah saat ini.
-    9. Ikutilah *ikigai*-mu.
+    8. Bersyukurlah
+    9. Hiduplah saat ini.
+    10. Ikutilah *ikigai*-mu.
 - Kebahagiaan selalu ditentukan oleh hatimu.
 - Teruslah jangan mengubah jalanmu.
 - Begitu anda menemukan *ikigai*, mengejar dan merawatnya setiap hari akan memberikan makna bagi hidup anda.
