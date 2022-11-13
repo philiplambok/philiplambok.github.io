@@ -122,44 +122,31 @@ First, let's build the customer input:
 
 ![](/assets/customer-input.gif)
 
-In this feature, we need to create one select input that contains a list of customers and another disabled email field that will show the email information of the selected customer.
+To build this feature we can create a select tag, where the value from the options was the customer's email:
 
-Let's create the views for this feature:
-
-```html
-<!-- app/views/invoices/new.html.erb -->
-<div class="container mt-4">
-  <div class="row">
-    <div class="col-md-12">
-      <h5>Create a new invoice</h5>
-      <%= link_to 'Back to invoices list', root_path %>
-    </div>
-  </div>
-
-  <div class="row">
-    <div class="col-md-12">
-      <%= form_with(model: @invoice, data: { controller: 'invoices' }) do |form| %>
-        <div class="form-group mt-2 row">
-          <div class="col-md-6">
-            <%= form.label :customer, class: 'form-label' %>
-            <%= form.select :customer, 
+```erb
+<%= form.select :customer, 
                 Customer.all.pluck(:name, :email), 
                 { prompt: 'Select Customer' }, 
                 { required: true, class: 'form-control', data: { action: 'change->invoices#updateEmail' } } %>
-          </div>
-          <div class="col-md-6">
-            <%= form.label :email, class: 'form-label' %>
-            <%= form.text_field :email, class: 'form-control', disabled: true, class: 'form-control', data: { 'invoices-target': 'emailField' }  %>
-          </div>
-        </div>
-      <% end %>
-    </div>
-  </div>
-</div>
 ```
 
+And create the disabled email text field, where we show the information about the selected customer's email. 
+
+```erb
+<%= form.text_field :email, class: 'form-control', disabled: true, class: 'form-control', data: { 'invoices-target': 'emailField' }  %>
+```
+
+After that, we can trigger a Stimulus action.
+
+```
+data: { action: 'change->invoices#updateEmail' }
+```
+
+This means that every time users change the value from the `select` tag, we can run the `updateEmail` method inside the `invoices` controller.
+
 ```js
-// app/javascripts/controllers/invoices_controller.js
+// app/controllers/invoices_controller.js
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
@@ -171,24 +158,6 @@ export default class extends Controller {
 }
 ```
 
-What we only need to do is we need to create a `select` HTML that contains the customer name and email information, in this case, name as a label, and email as a value. And then register a Stimulus `changed` event to the select tag, so every time users change the option from the select tag, we can update the value from the disabled `email` field from our JS code. 
+In that method, we can receive the selected customer email by `even.target.value` then we update the DOM of the email field.
 
-```
-change->invoices#updateEmail
-```
-
-That means every time users change the value or option from the `select` tag, the `updateEmail()` method from the `Invoices` controller will be run or triggered.
-
-Inside the `updateEmail`:
-
-```js
-export default class extends Controller {
-  static targets = ["emailField"]
-
-  updateEmail(event){
-    this.emailFieldTarget.value = event.target.value
-  }
-}
-```
-
-We receive the selected value from the `event` variable (method argument), then we change the value from our disabled `emailField` via `this.emailFieldTargetValue = event.target.value`. Now, the feature is working well.
+Then, the feature already working as we expect.
