@@ -80,7 +80,7 @@ export default class extends Controller {
 }
 ```
 
-The HTML we can generate from our lovely [Erb](https://github.com/ruby/erb) does not need a new template engine or JS code to generate. 
+The HTML we can generate from our lovely [Erb](https://github.com/ruby/erb), does not need a new template engine or JS code to generate. 
 
 This is the example result:
 
