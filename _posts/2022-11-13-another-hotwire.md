@@ -160,4 +160,15 @@ export default class extends Controller {
 
 In that method, we can receive the selected customer email by `even.target.value` then we update the DOM of the email field.
 
-Then, the feature already working as we expect.
+That's all. Now, the selection of customer input already working as expected.
+
+Now, we continue to implement the selection product feature:
+
+![](/assets/product-01.gif)
+
+On this feature, we will:
+1. Provide the list of products. And after users choose one of the products:
+3. Update the unit text field with `1`.
+4. Update the price per unit text field.
+5. Update the total with "unit * price per unit".
+
