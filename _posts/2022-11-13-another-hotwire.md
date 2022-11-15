@@ -258,3 +258,18 @@ export default class extends Controller {
 ```
 
 Now, the customer selection feature is already done.
+
+Next, we will continue building the "add new product" link.
+
+![](/assets/add-product-link.gif)
+
+It's time to talk about Turbo. Because to implement this kind of feature, we need to write in Turbo.
+
+You can imagine Turbo is just like a _remote_ form that you already know. 
+
+In Hotwire, we can create a link, that can process in the background, and then change the existing DOM without refreshing any page or changing any URL state. 
+
+I already create [an article](http://localhost:4000/rails,/hotwire,/dynamic-form/2022/08/14/offcanvas-implementation-in-rails.html) that provides a sample workflow in Turbo, you can check out that article to learn more about that.
+
+So, without further do, here's the implementation for that feature.
+
