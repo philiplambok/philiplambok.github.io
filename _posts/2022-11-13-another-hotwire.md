@@ -172,3 +172,89 @@ On this feature, we will:
 4. Update the price per unit text field.
 5. Update the total with "unit * price per unit".
 
+This is the code for showing the list of products:
+
+```erb
+<%= product_form.select :product_id, 
+                              options_for_select(products_options), 
+                              { prompt: 'Select product' }, 
+                              class: 'form-control',
+                              required: true, 
+                              data: { 'invoice-products-target': 'productItem', action: 'change->invoice-products#updatePrices' } %>
+```
+
+```rb
+# app/controllers/invoices_controller.rb
+# ...
+def products_options
+  products = Product.all
+  products.map { |product| [product.name, product.id, { data: { price_per_unit: product.amount } }] }
+end
+# ...
+```
+
+From the backend, we need to show the information about the product's price per unit information to the client.
+
+Here's the client's code:
+
+```js
+import { Controller } from "@hotwired/stimulus"
+
+// Connects to data-controller="invoice-products"
+export default class extends Controller {
+  static targets = ["unit", "productItem", "pricePerUnit", "total"]
+
+  // ...
+  updatePrices(event) {
+    if(event.target.selectedOptions[0].value == '') {
+      this.unitTarget.value = ''
+      this.pricePerUnitTarget.value = ''
+      this.totalTarget.value = ''
+    } else {
+      this.pricePerUnitTarget.value = this.toIdr(this.findPricePerUnitFor(event.target))
+      this.unitTarget.value = 1
+    }
+    this.totalTarget.dispatchEvent(new Event('change'))
+    this.unitTarget.dispatchEvent(new Event('change'))
+  }
+
+  findPricePerUnitFor(element) {
+    return element.selectedOptions[0].dataset.pricePerUnit
+  }
+
+  toIdr(number) {
+    const idr = new Intl.NumberFormat('id').format(number)
+    return `Rp ${idr}`
+  }
+}
+```
+
+`findPricePerUnitFor` will fetch the related price per unit product information. You can learn more about the APIs from this [documentation](https://developer.mozilla.org/en-US/docs/Learn/HTML/Howto/Use_data_attributes).
+
+One more thing, as you realize we need to make the unit text field responsive. When users change the unit to any number, we need to update the total price. We can implement this feature with add logic in our client like this:
+
+```erb
+<%= product_form.number_field :unit, class: 'form-control', required: true, data: { action: 'change->invoice-products#updateProductItemPrice', 'invoice-products-target': 'unit' } %>
+```
+
+```js
+
+import { Controller } from "@hotwired/stimulus"
+
+// Connects to data-controller="invoice-products"
+export default class extends Controller {
+  static targets = ["unit", "productItem", "pricePerUnit", "total"]
+
+  updateProductItemPrice(event) {
+    const pricePerUnit = this.findPricePerUnitFor(this.productItemTarget)
+    const total = pricePerUnit * event.target.value
+    this.totalTarget.value = this.toIdr(total)
+    this.totalTarget.setAttribute('data-amount', total)
+    this.totalTarget.dispatchEvent(new Event('change'))
+  }
+
+  // ...
+}
+```
+
+Now, the customer selection feature is already done.
