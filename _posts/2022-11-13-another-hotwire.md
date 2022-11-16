@@ -4,7 +4,7 @@ title:  "Another Hotwire Experiment"
 date:   2022-11-13 07:14:00 +0700
 categories: hotwire
 comments: true
-published: false
+published: true
 ---
 
 Again, continuing my learning on Hotwire, I just want to share what I already build, and how. 
@@ -419,7 +419,7 @@ Done, our add product link now already worked as expected.
 
 `turbo_stream` has multiple available methods, you can check [this](https://github.com/hotwired/turbo-rails/blob/main/app/helpers/turbo/streams_helper.rb) and [this](https://turbo.hotwired.dev/handbook/streams) to know more about them.
 
-The final thing, it's the backend code. There is no relation to the Hotwire so I think it's pretty self explainable:
+The final thing, it's the backend code. There is no relation to the Hotwire so I think it's pretty self explanatory:
 
 ```rb
 class InvoicesController < ApplicationController
@@ -440,7 +440,16 @@ class InvoicesController < ApplicationController
     end
     redirect_to invoices_path
   end
-
   # ...
 end
 ```
+
+## Conclusion
+
+That's all, for the complete code, you can go to the [codebase](https://github.com/philiplambok/invoice-hotwire).
+
+All the code in this example was first written, I don't do refactoring, so forgive me for the bad naming and poor performance. The goal is not to write the production code, but to explain the overview of how to write reactive features in Hotwire. 
+
+I hope you got some information from this article, and enjoy reading it. 
+
+See you in the next article!
