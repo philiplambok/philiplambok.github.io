@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Another Hotwire Experiment"
-date:   2022-11-13 07:14:00 +0700
+date:   2022-11-16 07:14:00 +0700
 categories: hotwire
 comments: true
 published: true
