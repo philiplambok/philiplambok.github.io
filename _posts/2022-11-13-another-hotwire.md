@@ -415,3 +415,32 @@ Here are the completed ERB templates:
 <% end %>
 ```
 
+Done, our add product link now already worked as expected.
+
+`turbo_stream` has multiple available methods, you can check [this](https://github.com/hotwired/turbo-rails/blob/main/app/helpers/turbo/streams_helper.rb) and [this](https://turbo.hotwired.dev/handbook/streams) to know more about them.
+
+The final thing, it's the backend code. There is no relation to the Hotwire so I think it's pretty self explainable:
+
+```rb
+class InvoicesController < ApplicationController
+  # ...
+  def create
+    ApplicationRecord.transaction do
+      customer = Customer.find_by(email: params[:invoice][:customer])
+      invoice = Invoice.create!(customer: customer)
+      total = 0
+      params[:invoice_products].each do |product_item|
+        invoice_product = invoice.invoice_products.create!(
+          product_id: product_item[:product_id],
+          unit: product_item[:unit]
+        )
+        total += invoice_product.product.amount * invoice_product.unit.to_i
+      end
+      invoice.update!(total: total)
+    end
+    redirect_to invoices_path
+  end
+
+  # ...
+end
+```
