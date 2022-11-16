@@ -4,7 +4,7 @@ title:  "Another Hotwire Experiment"
 date:   2022-11-13 07:14:00 +0700
 categories: hotwire
 comments: true
-published: true
+published: false
 ---
 
 Again, continuing my learning on Hotwire, I just want to share what I already build, and how. 
