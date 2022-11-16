@@ -273,3 +273,145 @@ I already create [an article](http://localhost:4000/rails,/hotwire,/dynamic-form
 
 So, without further do, here's the implementation for that feature.
 
+First, let's create the link:
+
+```erb
+<%= link_to 'Add new product', add_product_item_invoices_path, data: { turbo_method: 'post' }  %> <br>
+```
+
+Then, create the routes:
+
+```rb
+Rails.application.routes.draw do
+  resources :invoices, only: %i[new create index] do
+    collection do
+      post :add_product_item
+    end
+  end
+  root to: 'invoices#index'
+end
+```
+
+The code means that if users click the "Add new product" link, Rails will trigger an HTTP request in the background the related routes, here are the sample logs:
+
+```
+Started POST "/invoices/add_product_item" for ::1 at 2022-11-16 07:35:58 +0700
+Processing by InvoicesController#add_product_item as TURBO_STREAM
+```
+
+This is similar to the remote form that already exists in Rails 5.
+
+Inside the controller we can do something like this:
+
+```rb
+# app/controllers/invoices_controller.rb
+class InvoicesController < ApplicationController
+  # ...
+
+  def add_product_item
+    respond_to do |format|
+      format.html { head :no_content }
+      format.turbo_stream
+    end
+  end
+end
+```
+
+As you can see in the logs, the HTTP request name for this kind of request is "TURBO STREAM". So, Rails will run the `format.turbo_stream` and will run this view:
+
+```erb
+<%# /app/views/invoices/add_product_item.turbo_stream.erb %>
+<%= turbo_stream.append :invoice_products_form do %>
+  <%= render 'invoice_product_form', invoice: Invoice.new %>
+<% end %>
+```
+
+This code means:
+- Rails will find the DOM with id="invoice_products_form".
+- After finding the DOM, Rails will append a new DOM where the new DOM content was the view from the 'invoice_product_form' partial.
+
+Here are the completed ERB templates:
+
+```erb
+<%#  /app/views/invoices/new.html.erb %>
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-12">
+      <h5>Create a new invoice</h5>
+      <%= link_to 'Back to invoices list', root_path %>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-12">
+      <%= form_with(model: @invoice, data: { controller: 'invoices' }) do |form| %>
+        <div class="form-group mt-2 row">
+          <div class="col-md-6">
+            <%= form.label :customer, class: 'form-label' %>
+            <%= form.select :customer, 
+                Customer.all.pluck(:name, :email), 
+                { prompt: 'Select Customer' }, 
+                { required: true, class: 'form-control', data: { action: 'change->invoices#updateEmail' } } %>
+          </div>
+          <div class="col-md-6">
+            <%= form.label :email, class: 'form-label' %>
+            <%= form.text_field :email, class: 'form-control', disabled: true, class: 'form-control', data: { 'invoices-target': 'emailField' }  %>
+          </div>
+        </div>
+
+        <span class="fw-bold d-block my-4">Products</span>
+
+        <%= turbo_frame_tag :invoice_products_form do %>
+          <%= render 'invoice_product_form', invoice: @invoice %>
+        <% end %>
+
+        <%= link_to 'Add new product', add_product_item_invoices_path, data: { turbo_method: 'post' }, class: 'd-flex mt-4'  %>
+
+        <hr>
+        <div class="row d-flex align-items-center">
+          <div class="col">
+            <span class="d-block">Total</span>
+            <span class="fw-bold" data-invoices-target="total">Rp 0</span>
+          </div>
+          <div class="col d-flex flex-row-reverse">
+            <%= form.submit 'Submit', class: 'btn btn-primary px-4' %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+```
+
+```erb
+<%#  /app/views/invoices/invoice_product_form.html.erb %>
+<%= fields_for('invoice_products[]', invoice.invoice_products.build) do |product_form| %>
+  <div class="form-group row my-2" data-controller="invoice-products">
+    <div class="col-md-4">
+      <%= product_form.label :product_name, class: 'form-label' %>
+      <%= product_form.select :product_id, 
+                              options_for_select(products_options), 
+                              { prompt: 'Select product' }, 
+                              class: 'form-control',
+                              required: true, 
+                              data: { 'invoice-products-target': 'productItem', action: 'change->invoice-products#updatePrices' } %>
+    </div>
+
+    <div class="col-md-2">
+      <%= product_form.label :unit, class: 'form-label' %>
+      <%= product_form.number_field :unit, class: 'form-control', required: true, data: { action: 'change->invoice-products#updateProductItemPrice', 'invoice-products-target': 'unit' } %>
+    </div>
+
+    <div class="col-md-2">
+      <%= product_form.label :price_per_unit, class: 'form-label' %>
+      <%= product_form.text_field :price_per_unit, class: 'form-control', disabled: true, data: { 'invoice-products-target': 'pricePerUnit' } %>
+    </div>
+
+    <div class="col-md-4">
+      <%= product_form.label :total, class: 'form-label' %>
+      <%= product_form.text_field :total, class: 'form-control', disabled: true, data: { 'invoice-products-target': 'total', 'invoices-target': 'totalItem', action: 'change->invoices#updateTotal' } %>
+    </div>
+  </div>
+<% end %>
+```
+
