@@ -4,6 +4,11 @@
       "language": "markdown",
       "scheme": "file",
       "pattern": "_posts/2022-11-13-another-hotwire.md"
+    },
+    {
+      "language": "markdown",
+      "scheme": "file",
+      "pattern": "_posts/2022-11-20-on-high-performance.md"
     }
   ]
 }
