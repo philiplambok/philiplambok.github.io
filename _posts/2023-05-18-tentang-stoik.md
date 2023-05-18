@@ -9,7 +9,7 @@ published: true
 
 Saya baru saja selesai membaca buku [tentang Stoik](https://www.goodreads.com/book/show/31423245-how-to-be-a-stoic) yang sangat menarik. Buku ini memberikan pandangan yang baru dalam menghadapi hidup dan mulai membuat saya memikirkan tentang kehidupan yang sedang dijalani.
 
-[Stoik](https://en.wikipedia.org/wiki/Stoicism) adalah aliran fisafat yang dibuat pertama kali oleh filsuf dari Yunani (Kuno). Sebelum membaca buku ini, bagi saya filsafat memiliki keterkaitan erat dengan atheist. Tapi setelah membaca bukunya, ternyata energi yang dihasilkan sangat berkebalikan: saya menjadi lebih tertarik untuk belajar lebih dalam tentang keilahian.
+[Stoik](https://en.wikipedia.org/wiki/Stoicism) adalah aliran filsafat yang pertama kali dikembangkan oleh para filsuf Yunani kuno. Sebelum membaca buku ini, saya memiliki persepsi bahwa filsafat erat kaitannya dengan ateisme. Namun, setelah membaca bukunya, saya menyadari bahwa pandangan ini benar-benar berlawanan: saya menjadi lebih tertarik untuk mempelajari lebih lanjut tentang keilahian.
 
 Filsafat sebenernya malah mengajarkan kita untuk memikirkan lebih dalam lagi tentang segala hal. Khususnya yang baik dan yang bermamfaat:
 
@@ -17,15 +17,15 @@ Filsafat sebenernya malah mengajarkan kita untuk memikirkan lebih dalam lagi ten
 
 Stoik mengajarkan saya untuk menerapkan kebajikan untuk meraih ketentraman hati. Untuk menerapkan ketentraman hati, kita harus memusatkan perhatian kita pada hal-hal yang kita kendalikan saja, lalu membiarkan semesta berjalan sesuai kemauannya. Bagi mereka hal ini akan mengemat energi sekaligus meminimalkan kecemasan. 
 
-Kata semesta disini diartikan sebagai sesuatu yang tidak bisa kita kendalikan. Sebagai contoh, misalnya anda adalah atlit sepak bola. Memenangkan pertandingan bukanlah fokus atau tujuan Anda, tapi tujuan anda adalah untuk bermain sebaik mungkin. Anda harus berlatih dengan giat untuk bagaimana mengumpan dengan baik, berlari yang cepat, memiliki energi yang banyak dan lain-lain. Menang atau kalah itu diluar kendali Anda, atau bisa dibilang ini adalah kehendak Tuhan.
+Di sini, kata "semesta" mengacu pada sesuatu yang berada di luar kendali kita. Sebagai contoh, jika Anda seorang atlet sepak bola, fokus atau tujuan Anda bukanlah memenangkan pertandingan, tetapi bermain sebaik mungkin. Anda perlu berlatih dengan tekun untuk meningkatkan keterampilan umpan, kecepatan berlari, energi, dan lainnya. Kemenangan atau kekalahan berada di luar kendali Anda, atau dapat dikatakan sebagai kehendak Tuhan.
 
-Karena sepak bola adalah tentang tim, bukan individu, mungkin ada teman tim anda yang tidak serius, atau mungkin anda tidak enak badan ketika bertanding, dan lain-lain. Dan penyesalan juga adalah penyia-nyiaan energi emosional. Kita tidak dapat mengubah yang sudah berlalu, itu diluar kendali kita. Kita harus belajar dari kegagalan kita, tapi satu-satunya situasi yang ada dalam kuasa kita adalah yang sedang berlangsung dari sini dan saat ini. 
+Karena sepak bola adalah tentang tim, bukan individu, mungkin ada rekan tim yang kurang serius atau Anda mungkin merasa tidak enak badan saat bertanding, dan sebagainya. Menyesali hal tersebut hanya akan membuang energi emosional. Kita tidak dapat mengubah masa lalu, karena itu berada di luar kendali kita. Yang dapat kita lakukan adalah belajar dari kegagalan kita, namun satu-satunya situasi yang dapat kita kendalikan adalah saat ini dan di tempat ini.
 
 Jadi, sikap yang tepat adalah mencari ketenangan dan memberikan yang terbaik. Entah Anda berhasil atau tidak, sikap yang terbaik adalah menerima hasilnya tanpa rasa bersalah.
 
-Kebajikan adalah kualitas atau sifat moral yang baik dalam diri seseorang. Lewat cara apapun, majulah terus dan hindari kesedihan agar mengalami kegembiraan dalam hidup — tapi tidak ketika hal itu beresiko mengorbankan integritas Anda. Lebih baik menahan kesedihan dengan cara yang terhormat daripada mencari kegembiraan dengan cara yang memalukan. 
+Kebajikan merujuk pada kualitas atau sifat moral yang baik dalam diri seseorang. Berusaha maju dan menghindari kesedihan untuk mencapai kebahagiaan dalam hidup adalah penting, tetapi tidak boleh mengorbankan integritas Anda. Lebih baik menahan kesedihan dengan cara yang terhormat daripada mencari kegembiraan dengan cara yang memalukan.
 
-Untuk menjadi orang yang bijak, atau enam kebijakan utama bagi filsuf Athena adalah:
+Untuk menjadi orang yang bijak, atau enam kebajikan utama bagi filsuf Athena adalah:
 
 1. **Keteguhan hati:** Kekuatan-kekuatan emosional yang meliputi pelaksanaan keinginan meraih sasaran-sasaran meskipu mengalami tantangan, baik dari luar maupun dalam. Ini meliputi keberanian, ketekunan, dan kejujuran (*honesty*).
 2. **Keadilan:** Kekuatan-kekuatan seorang anggota yang mendasari kehidupan bermasyarakat yang sehat. Ini meliputi kesetaraan, kepemimpinan, dan kewarganegaraan atau kerja sama tim. 
