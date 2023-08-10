@@ -23,8 +23,6 @@ twitter_username: philiplambok
 github_username: philiplambok
 linkedin_username: philiplambok
 telegram_username: philiplambok
-disqus:
-  shortname: philips-slice-of-life
 
 # Build settings
 markdown: kramdown
