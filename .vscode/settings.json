@@ -10,5 +10,6 @@
       "scheme": "file",
       "pattern": "_posts/2022-11-20-on-high-performance.md"
     }
-  ]
+  ],
+  "liquid.format.enable": true
 }
