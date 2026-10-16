@@ -1,0 +1,19 @@
+[tools]
+ruby = "3.4.7"
+
+[env]
+BUNDLE_PATH = "vendor/bundle"
+
+[tasks.install]
+description = "Install gems"
+run = "bundle install"
+
+[tasks.serve]
+description = "Run the blog locally with live reload"
+depends = ["install"]
+run = "bundle exec jekyll serve --livereload"
+
+[tasks.build]
+description = "Build the site into _site"
+depends = ["install"]
+run = "bundle exec jekyll build"
