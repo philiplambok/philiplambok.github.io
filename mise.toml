@@ -17,3 +17,28 @@ run = "bundle exec jekyll serve --livereload"
 description = "Build the site into _site"
 depends = ["install"]
 run = "bundle exec jekyll build"
+
+[tasks.new]
+description = "Create a new post: mise run new \"Post title\""
+usage = 'arg "<title>" help="Title of the post"'
+run = """
+#!/usr/bin/env ruby
+title = ENV.fetch("usage_title").strip
+slug = title.unicode_normalize(:nfkd).encode("ascii", undef: :replace, invalid: :replace, replace: "")
+            .downcase.gsub(/[^a-z0-9]+/, "-").gsub(/\\A-+|-+\\z/, "")
+abort "Title must contain at least one letter or number" if slug.empty?
+
+now = Time.now
+file = "_posts/#{now.strftime('%Y-%m-%d')}-#{slug}.md"
+abort "#{file} already exists" if File.exist?(file)
+
+File.write(file, <<~POST)
+  ---
+  layout: post
+  title: #{title.inspect}
+  date: #{now.strftime('%Y-%m-%d %H:%M:%S %z')}
+  ---
+
+POST
+puts "Created #{file}"
+"""

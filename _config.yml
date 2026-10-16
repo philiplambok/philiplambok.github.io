@@ -10,10 +10,12 @@ plugins:
   - jekyll-seo-tag
 
 minima:
-  social_links:
-    github: philiplambok
-    twitter: philiplambok
-    linkedin: philiplambok
+  skin: dark
+
+# Silence deprecation warnings coming from minima's stylesheets.
+sass:
+  quiet_deps: true
+  silence_deprecations: [import, global-builtin, color-functions]
 
 # Old articles live in archive/ and are only readable on GitHub.
 exclude:
