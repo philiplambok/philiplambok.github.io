@@ -3,6 +3,7 @@ author: Philip Lambok
 description: 
 url: "https://philiplambok.github.io"
 baseurl: ""
+timezone: Asia/Jakarta
 
 theme: minima
 plugins:
