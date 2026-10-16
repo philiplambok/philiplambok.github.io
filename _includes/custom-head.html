@@ -1,0 +1,10 @@
+<script>
+  // Show post dates in the visitor's local timezone.
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll("time[datetime]").forEach(function (el) {
+      var d = new Date(el.getAttribute("datetime"));
+      if (isNaN(d)) return;
+      el.textContent = d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    });
+  });
+</script>
