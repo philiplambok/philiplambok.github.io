@@ -20,6 +20,8 @@ sass:
 # Old articles live in archive/ and are only readable on GitHub.
 exclude:
   - archive
+  - AGENTS.md
+  - CLAUDE.md
   - README.md
   - mise.toml
   - Gemfile
